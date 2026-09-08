@@ -40,7 +40,8 @@ export class CsvEngine {
     cpa: ['cpa', 'cost / conv', 'cost per conversion', 'cost per acquisition', 'cost / conv.'],
     costPerAllConv: ['cost / all conv', 'cost / all conv.', 'cost per all conv', 'cost per all conversion'],
     specialty: ['specialty', 'location', 'specialty / loc', 'service', 'department', 'centre'],
-    channel: ['channel', 'type', 'campaign type', 'network', 'strategy'],
+    channel: ['channel', 'type', 'campaign type', 'strategy'],
+    platform: ['platform', 'advertising platform', 'ad platform', 'network', 'publisher', 'source'],
     date: PeriodEngine.DATE_SYNONYMS
   };
 
@@ -130,16 +131,32 @@ export class CsvEngine {
     return new Promise((resolve, reject) => {
       if (typeof Papa !== 'undefined') {
         Papa.parse(fileOrString, {
-          header: true,
+          header: false,
           skipEmptyLines: 'greedy',
           dynamicTyping: false,
-          transformHeader: h => (h || '').trim(),
           complete: results => {
             if (results.errors && results.errors.length > 0 && (!results.data || results.data.length === 0)) {
               reject(new Error(results.errors[0].message || 'Malformed CSV format.'));
-            } else {
-              resolve(results);
+              return;
             }
+            const allRows = results.data || [];
+            if (allRows.length === 0) {
+              resolve({ data: [], errors: results.errors || [] });
+              return;
+            }
+            const rawHeaders = allRows[0] || [];
+            const headers = rawHeaders.map(h => (h || '').trim());
+            const parsedRows = [];
+            for (let i = 1; i < allRows.length; i++) {
+              const r = allRows[i];
+              if (!r || r.length === 0 || r.every(c => !c || !String(c).trim())) continue;
+              const rowObj = {};
+              headers.forEach((h, idx) => {
+                rowObj[h] = r[idx] !== undefined ? String(r[idx]).trim() : '';
+              });
+              parsedRows.push(rowObj);
+            }
+            resolve({ data: parsedRows, errors: results.errors || [] });
           },
           error: err => reject(err)
         });
@@ -483,7 +500,7 @@ export class CsvEngine {
       // Conversion Rate
       const conversionRate = clicks > 0 ? parseFloat(((conversions / clicks) * 100).toFixed(2)) : 0;
 
-      // Detect Channel (Search vs PMax vs Display)
+      // Detect Channel (Search vs PMax vs Display vs YouTube vs Meta)
       let channel = 'Search';
       const lowerName = name.toLowerCase();
       const rawChannel = (row[mapping.channel] || '').toLowerCase();
@@ -491,6 +508,31 @@ export class CsvEngine {
         channel = 'PMax';
       } else if (rawChannel.includes('display') || lowerName.includes('display')) {
         channel = 'Display';
+      } else if (rawChannel.includes('youtube') || lowerName.includes('youtube') || rawChannel.includes('video')) {
+        channel = 'YouTube';
+      } else if (rawChannel.includes('meta') || rawChannel.includes('facebook') || rawChannel.includes('instagram')) {
+        channel = 'Meta';
+      }
+
+      // Detect Platform (Requirement: Do not default an unknown standard CSV to Google)
+      let platform = 'unknown';
+      const rawPlatform = mapping.platform && row[mapping.platform] ? String(row[mapping.platform]).trim().toLowerCase() : '';
+      if (rawPlatform) {
+        if (rawPlatform.includes('google') || rawPlatform.includes('adwords')) {
+          platform = 'google';
+        } else if (rawPlatform.includes('meta') || rawPlatform.includes('facebook') || rawPlatform.includes('instagram')) {
+          platform = 'meta';
+        } else {
+          platform = rawPlatform;
+        }
+      } else if (rawChannel.includes('google') || rawChannel.includes('adwords') || rawChannel.includes('youtube')) {
+        platform = 'google';
+      } else if (rawChannel.includes('meta') || rawChannel.includes('facebook') || rawChannel.includes('instagram')) {
+        platform = 'meta';
+      } else if (metadata.platform) {
+        platform = String(metadata.platform).toLowerCase();
+      } else {
+        platform = 'unknown';
       }
 
       // Detect specialty/location
@@ -529,6 +571,7 @@ export class CsvEngine {
       campaigns.push({
         id: 'camp_csv_' + idx + '_' + Math.random().toString(36).substr(2, 4),
         name,
+        platform,
         channel,
         specialty,
         spend,
@@ -636,7 +679,7 @@ export class CsvEngine {
       throw new Error('No valid reporting period columns found in cross-tab CSV.');
     }
 
-    const SECTION_NAMES = ['google search', 'google pmax', 'youtube video campaign', 'meta'];
+    const SECTION_NAMES = ['google search', 'google pmax', 'youtube', 'meta'];
 
     const periodDataMap = {};
     periodColumns.forEach(p => {
@@ -644,7 +687,8 @@ export class CsvEngine {
     });
 
     let currentCampaign = '';
-    let currentSection = 'Search';
+    let currentSection = 'Google Search';
+    let currentPlatform = 'google';
     let currentChannel = 'Search';
     let currentCampaignId = '';
     let campCounter = 0;
@@ -659,21 +703,38 @@ export class CsvEngine {
         continue;
       }
 
-      // 2. Section / platform header: KPI is blank and col0 matches section name (User requirement 4)
-      if (!col1 && SECTION_NAMES.some(s => col0.toLowerCase().includes(s))) {
-        currentSection = col0;
-        const lower = col0.toLowerCase();
-        if (lower.includes('pmax')) currentChannel = 'PMax';
-        else if (lower.includes('youtube') || lower.includes('video')) currentChannel = 'YouTube';
-        else if (lower.includes('meta')) currentChannel = 'Meta';
-        else currentChannel = 'Search';
+      // 2. Dynamic Section & Platform header detection (never use fixed row numbers)
+      const lowerCol0 = col0.toLowerCase();
+      const isSectionMatch = SECTION_NAMES.some(s => lowerCol0.includes(s));
 
-        currentCampaign = '';
-        currentCampaignId = '';
-        continue;
+      if (isSectionMatch) {
+        if (lowerCol0.includes('meta')) {
+          currentSection = col0;
+          currentPlatform = 'meta';
+          currentChannel = 'Meta';
+        } else if (lowerCol0.includes('youtube') || lowerCol0.includes('video')) {
+          currentSection = col0;
+          currentPlatform = 'google';
+          currentChannel = 'YouTube';
+        } else if (lowerCol0.includes('pmax') || lowerCol0.includes('performance max')) {
+          currentSection = col0;
+          currentPlatform = 'google';
+          currentChannel = 'PMax';
+        } else if (lowerCol0.includes('search')) {
+          currentSection = col0;
+          currentPlatform = 'google';
+          currentChannel = 'Search';
+        }
+
+        // If purely a section header (col1 empty), clear campaign context and proceed
+        if (!col1) {
+          currentCampaign = '';
+          currentCampaignId = '';
+          continue;
+        }
       }
 
-      // 3. Campaign name fill-down (deterministic, user directive 2)
+      // 3. Campaign name fill-down (deterministic, dynamic section inheritance)
       if (col0) {
         currentCampaign = col0;
         campCounter++;
@@ -715,6 +776,7 @@ export class CsvEngine {
           map.set(currentCampaignId, {
             id: currentCampaignId,
             name: currentCampaign,
+            platform: currentPlatform,
             channel: currentChannel,
             specialty,
             section: currentSection,
@@ -799,6 +861,7 @@ export class CsvEngine {
         campaigns.push({
           id: c.id,
           name: c.name,
+          platform: c.platform || 'google',
           channel: c.channel,
           specialty: c.specialty,
           section: c.section,
@@ -851,6 +914,7 @@ export class CsvEngine {
         },
         metrics: {
           spend: Math.round(aggSpend),
+          totalSpend: Math.round(aggSpend),
           impressions: aggImpressions,
           clicks: aggClicks,
           ctr: overallCtr,

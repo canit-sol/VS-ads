@@ -149,6 +149,14 @@ class AppController {
       });
     }
 
+    // Platform selector tabs in top bar
+    document.querySelectorAll('[data-platform-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const plat = btn.getAttribute('data-platform-tab');
+        this.setPlatformFilter(plat);
+      });
+    });
+
     // Context rail toggle
     const railToggleBtn = document.getElementById('btn-toggle-rail');
     if (railToggleBtn) {
@@ -201,6 +209,10 @@ class AppController {
 
     this.renderActiveView();
     this.refreshIcons();
+  }
+
+  setPlatformFilter(platform) {
+    store.setPlatformFilter(platform);
   }
 
   renderActiveView() {
@@ -276,12 +288,23 @@ class AppController {
   }
 
   renderHeaderControls() {
-    const report = store.getActiveReport();
+    // 1. Sync platform tab styling
+    const currentPlatform = store.platformFilter || 'all';
+    document.querySelectorAll('[data-platform-tab]').forEach(btn => {
+      const tab = btn.getAttribute('data-platform-tab');
+      if (tab === currentPlatform) {
+        btn.className = 'px-2.5 py-1 rounded-md font-medium transition bg-white text-black text-[11px]';
+      } else {
+        btn.className = 'px-2.5 py-1 rounded-md font-medium transition text-[#A3A3A3] hover:text-[#F5F5F5] text-[11px]';
+      }
+    });
+
+    const report = store.getActiveReportScoped();
     const spentEl = document.getElementById('hdr-budget-spent');
     const remainingEl = document.getElementById('hdr-budget-remaining');
     const runRateEl = document.getElementById('hdr-daily-rate');
 
-    if (!report) {
+    if (!report || report.campaigns.length === 0) {
       if (spentEl) spentEl.textContent = '—';
       if (remainingEl) remainingEl.textContent = '—';
       if (runRateEl) runRateEl.textContent = '—';
@@ -365,8 +388,8 @@ class AppController {
     const emptyState = document.getElementById('overview-empty-state');
     const content = document.getElementById('overview-content');
 
-    const report = store.getActiveReport();
-    if (!report || store.getAllReports().length === 0) {
+    const rawReport = store.getActiveReport();
+    if (!rawReport || store.getAllReports().length === 0) {
       if (emptyState) emptyState.classList.remove('hidden');
       if (content) content.classList.add('hidden');
       return;
@@ -375,13 +398,67 @@ class AppController {
     if (emptyState) emptyState.classList.add('hidden');
     if (content) content.classList.remove('hidden');
 
-    const comp = store.getComparisonReport();
+    const activePlatform = store.platformFilter || 'all';
+    const report = store.getActiveReportScoped(activePlatform);
+    const comp = store.getComparisonReportScoped(activePlatform);
+
+    // Platform-specific elements
+    const platformEmptyEl = document.getElementById('overview-platform-empty');
+    const kpiSection = document.getElementById('overview-kpi-section');
+    const compSection = document.getElementById('overview-platform-comparison');
+    const chartsRow = document.querySelector('#overview-content .grid-cols-1.lg\\:grid-cols-12');
+    const spotlightRow = document.getElementById('overview-spotlight-container');
+
+    // Requirement 11: Clean empty state when platform has no data for selected period
+    if (!report || report.campaigns.length === 0) {
+      if (platformEmptyEl) {
+        platformEmptyEl.classList.remove('hidden');
+        const emptyTitle = document.getElementById('overview-platform-empty-title');
+        const emptyDesc = document.getElementById('overview-platform-empty-desc');
+        const platLabel = activePlatform === 'meta' ? 'Meta' : (activePlatform === 'google' ? 'Google' : 'Selected Platform');
+        if (emptyTitle) emptyTitle.textContent = `NO ${platLabel.toUpperCase()} DATA`;
+        if (emptyDesc) emptyDesc.textContent = `No ${platLabel} advertising data was recorded for this reporting period.`;
+      }
+      if (kpiSection) kpiSection.classList.add('hidden');
+      if (compSection) compSection.classList.add('hidden');
+      if (chartsRow) chartsRow.classList.add('hidden');
+      if (spotlightRow) spotlightRow.classList.add('hidden');
+
+      const periodLabelEl = document.getElementById('ov-budget-period-label');
+      if (periodLabelEl) periodLabelEl.textContent = rawReport.period ? rawReport.period.periodLabel : rawReport.periodName;
+
+      const budgetTotal = document.getElementById('ov-budget-total');
+      const budgetSpent = document.getElementById('ov-budget-spent');
+      const budgetRem = document.getElementById('ov-budget-remaining');
+      const budgetPct = document.getElementById('ov-budget-pct');
+      const budgetProgress = document.getElementById('ov-budget-progressbar');
+      const budgetSubtext = document.getElementById('ov-budget-subtext');
+      if (budgetTotal) budgetTotal.textContent = '—';
+      if (budgetSpent) budgetSpent.textContent = '—';
+      if (budgetRem) budgetRem.textContent = '—';
+      if (budgetPct) budgetPct.textContent = '0% spent';
+      if (budgetProgress) budgetProgress.style.width = '0%';
+      if (budgetSubtext) budgetSubtext.textContent = 'No records in this period';
+      return;
+    }
+
+    if (platformEmptyEl) platformEmptyEl.classList.add('hidden');
+    if (kpiSection) kpiSection.classList.remove('hidden');
+    if (chartsRow) chartsRow.classList.remove('hidden');
+    if (spotlightRow) spotlightRow.classList.remove('hidden');
+
     const m = report.metrics;
     const b = report.budgetSummary;
 
     // Period label in banner
     const periodLabelEl = document.getElementById('ov-budget-period-label');
     if (periodLabelEl) periodLabelEl.textContent = report.period ? report.period.periodLabel : report.periodName;
+
+    // Platform badge
+    const badgeEl = document.getElementById('overview-kpi-platform-badge');
+    if (badgeEl) {
+      badgeEl.textContent = activePlatform === 'all' ? 'ALL PLATFORMS' : (activePlatform === 'google' ? 'GOOGLE ADS' : 'META ADS');
+    }
 
     // 1. Budget Banner
     const budgetTotal = document.getElementById('ov-budget-total');
@@ -404,51 +481,51 @@ class AppController {
         label: 'Total Spend',
         val: formatINR(b.spent),
         sub: `of ${formatINR(b.allocated, true)} budget`,
-        delta: comp ? `${(((b.spent - comp.budgetSummary.spent) / comp.budgetSummary.spent) * 100).toFixed(1)}%` : null,
+        delta: comp && comp.budgetSummary.spent ? `${(((b.spent - comp.budgetSummary.spent) / comp.budgetSummary.spent) * 100).toFixed(1)}%` : null,
         isPositive: false
       },
       {
         label: 'Impressions',
         val: formatNumber(m.impressions),
         sub: 'Total ad views',
-        delta: comp ? `${(((m.impressions - comp.metrics.impressions) / comp.metrics.impressions) * 100).toFixed(1)}%` : null,
+        delta: comp && comp.metrics.impressions ? `${(((m.impressions - comp.metrics.impressions) / comp.metrics.impressions) * 100).toFixed(1)}%` : null,
         isPositive: true
       },
       {
         label: 'Clicks',
         val: formatNumber(m.clicks),
         sub: `${m.ctr}% average CTR`,
-        delta: comp ? `${(((m.clicks - comp.metrics.clicks) / comp.metrics.clicks) * 100).toFixed(1)}%` : null,
+        delta: comp && comp.metrics.clicks ? `${(((m.clicks - comp.metrics.clicks) / comp.metrics.clicks) * 100).toFixed(1)}%` : null,
         isPositive: true
       },
       {
         label: 'Average CPC',
         val: formatINR(m.cpc),
         sub: 'Cost per ad click',
-        delta: comp ? `${(((m.cpc - comp.metrics.cpc) / comp.metrics.cpc) * 100).toFixed(1)}%` : null,
+        delta: comp && comp.metrics.cpc ? `${(((m.cpc - comp.metrics.cpc) / comp.metrics.cpc) * 100).toFixed(1)}%` : null,
         isPositive: false
       },
       {
-        label: 'Recorded Conversions',
-        val: m.conversions,
-        sub: `${m.conversionRate}% conv rate`,
-        delta: comp ? `${m.conversions >= comp.metrics.conversions ? '+' : ''}${m.conversions - comp.metrics.conversions}` : null,
+        label: activePlatform === 'meta' ? 'Meta Results' : 'Recorded Conversions',
+        val: activePlatform === 'meta' ? formatNumber(m.sourceResults || 0) : m.conversions,
+        sub: activePlatform === 'meta' ? (m.costPerResult ? `₹${m.costPerResult} cost / result` : 'Platform reported') : `${m.conversionRate}% conv rate`,
+        delta: comp ? (activePlatform === 'meta' ? null : `${m.conversions >= comp.metrics.conversions ? '+' : ''}${m.conversions - comp.metrics.conversions}`) : null,
         isPositive: true,
         highlight: true
       },
       {
-        label: 'Cost / Conversion (CPA)',
-        val: formatINR(m.cpa),
-        sub: 'Target ₹3,000',
-        delta: comp ? `${(((m.cpa - comp.metrics.cpa) / comp.metrics.cpa) * 100).toFixed(1)}%` : null,
+        label: activePlatform === 'meta' ? 'Cost / Result (CPR)' : 'Cost / Conversion (CPA)',
+        val: activePlatform === 'meta' ? (m.costPerResult ? formatINR(m.costPerResult) : '—') : (m.cpa ? formatINR(m.cpa) : 'None (0 conv)'),
+        sub: activePlatform === 'meta' ? 'Meta reported CPR' : 'Target ₹3,000',
+        delta: comp && comp.metrics.cpa ? `${(((m.cpa - comp.metrics.cpa) / comp.metrics.cpa) * 100).toFixed(1)}%` : null,
         isPositive: false,
         highlight: true
       },
       {
-        label: 'Conversion Rate',
-        val: formatPercent(m.conversionRate),
-        sub: 'Form fills & appointments',
-        delta: comp ? `+${(m.conversionRate - comp.metrics.conversionRate).toFixed(2)}%` : null,
+        label: 'Patient Leads',
+        val: formatNumber(m.leads),
+        sub: 'Verified lead inquiries',
+        delta: comp ? `${m.leads >= comp.metrics.leads ? '+' : ''}${m.leads - comp.metrics.leads}` : null,
         isPositive: true
       },
       {
@@ -482,8 +559,100 @@ class AppController {
       `).join('');
     }
 
+    // 2.1 Platform Comparison (Requirement 8: Clean Platform Summary when All is selected)
+    if (compSection) {
+      if (activePlatform === 'all') {
+        compSection.classList.remove('hidden');
+        const gRep = store.getScopedReport(rawReport, 'google');
+        const mRep = store.getScopedReport(rawReport, 'meta');
+        const gMetrics = gRep ? gRep.metrics : null;
+        const mMetrics = mRep ? mRep.metrics : null;
+
+        const compCards = document.getElementById('overview-platform-comparison-cards');
+        if (compCards) {
+          compCards.innerHTML = `
+            <!-- GOOGLE ADS SUMMARY -->
+            <div class="bg-[#111111] border border-white/[0.08] p-5 rounded-xl space-y-4">
+              <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-white"></span>
+                  <h4 class="text-xs font-semibold text-[#F5F5F5] uppercase tracking-wider">Google Ads</h4>
+                </div>
+                <span class="text-[11px] text-[#A3A3A3]">Search · PMax · YouTube</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Spend</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatINR(gMetrics.spend) : '₹0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Clicks</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatNumber(gMetrics.clicks) : '0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Average CPC</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatINR(gMetrics.cpc) : '₹0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Leads</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatNumber(gMetrics.leads) : '0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Phone Calls</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatNumber(gMetrics.phoneCalls) : '0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Conversions</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatNumber(gMetrics.conversions) : '0'}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- META ADS SUMMARY -->
+            <div class="bg-[#111111] border border-white/[0.08] p-5 rounded-xl space-y-4">
+              <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-[#A3A3A3]"></span>
+                  <h4 class="text-xs font-semibold text-[#F5F5F5] uppercase tracking-wider">Meta Ads</h4>
+                </div>
+                <span class="text-[11px] text-[#A3A3A3]">Instagram · Facebook</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Spend</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${mMetrics ? formatINR(mMetrics.spend) : '₹0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Clicks</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${mMetrics ? formatNumber(mMetrics.clicks) : '0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Average CPC</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${mMetrics ? formatINR(mMetrics.cpc) : '₹0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Results</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${mMetrics && mMetrics.sourceResults ? formatNumber(mMetrics.sourceResults) : (mMetrics && mMetrics.conversions ? formatNumber(mMetrics.conversions) : '0')}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Cost per Result (CPR)</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${mMetrics && mMetrics.costPerResult ? formatINR(mMetrics.costPerResult) : (mMetrics && mMetrics.cpa ? formatINR(mMetrics.cpa) : '—')}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Leads</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${mMetrics ? formatNumber(mMetrics.leads) : '0'}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        compSection.classList.add('hidden');
+      }
+    }
+
     // 3. Render Visualizations
-    ChartManager.renderVelocityChart('chart-velocity', store.getAllReports());
+    ChartManager.renderVelocityChart('chart-velocity', store.getAllReports(), activePlatform);
     ChartManager.renderChannelShareChart('chart-channel-share', report);
 
     // 4. Spotlight Pair (Editorial diagnostics)
@@ -492,7 +661,7 @@ class AppController {
     const weakOne = campaigns.find(c => c.classification === 'weak') || campaigns[campaigns.length - 1];
 
     const spotlightContainer = document.getElementById('overview-spotlight-container');
-    if (spotlightContainer) {
+    if (spotlightContainer && strongOne && weakOne) {
       spotlightContainer.innerHTML = `
         <div class="bg-[#111111] border border-white/[0.08] p-6 rounded-xl space-y-4">
           <div class="flex items-center justify-between">
@@ -572,8 +741,8 @@ class AppController {
     const emptyState = document.getElementById('campaigns-empty-state');
     const content = document.getElementById('campaigns-content');
 
-    const report = store.getActiveReport();
-    if (!report || store.getAllReports().length === 0) {
+    const rawReport = store.getActiveReport();
+    if (!rawReport || store.getAllReports().length === 0) {
       if (emptyState) emptyState.classList.remove('hidden');
       if (content) content.classList.add('hidden');
       return;
@@ -581,6 +750,32 @@ class AppController {
 
     if (emptyState) emptyState.classList.add('hidden');
     if (content) content.classList.remove('hidden');
+
+    const activePlatform = store.platformFilter || 'all';
+    const report = store.getActiveReportScoped(activePlatform);
+
+    // Platform empty state check
+    const platformEmptyEl = document.getElementById('campaigns-platform-empty');
+    const chartCard = document.querySelector('#campaigns-content .h-64')?.closest('.bg-\\[\\#111111\\]');
+    const tableCard = document.getElementById('campaigns-table-body')?.closest('.bg-\\[\\#111111\\]');
+
+    if (!report || report.campaigns.length === 0) {
+      if (platformEmptyEl) {
+        platformEmptyEl.classList.remove('hidden');
+        const emptyTitle = document.getElementById('campaigns-platform-empty-title');
+        const emptyDesc = document.getElementById('campaigns-platform-empty-desc');
+        const platLabel = activePlatform === 'meta' ? 'Meta' : (activePlatform === 'google' ? 'Google' : 'Selected Platform');
+        if (emptyTitle) emptyTitle.textContent = `NO ${platLabel.toUpperCase()} CAMPAIGNS`;
+        if (emptyDesc) emptyDesc.textContent = `No ${platLabel} campaigns were active in this reporting cycle.`;
+      }
+      if (chartCard) chartCard.classList.add('hidden');
+      if (tableCard) tableCard.classList.add('hidden');
+      return;
+    }
+
+    if (platformEmptyEl) platformEmptyEl.classList.add('hidden');
+    if (chartCard) chartCard.classList.remove('hidden');
+    if (tableCard) tableCard.classList.remove('hidden');
 
     let campaigns = [...report.campaigns];
 
@@ -593,6 +788,12 @@ class AppController {
       campaigns = campaigns.filter(c => c.channel === 'PMax');
     } else if (store.campaignFilter === 'Search') {
       campaigns = campaigns.filter(c => c.channel === 'Search');
+    } else if (store.campaignFilter === 'YouTube') {
+      campaigns = campaigns.filter(c => c.channel === 'YouTube');
+    } else if (store.campaignFilter === 'google') {
+      campaigns = campaigns.filter(c => (c.platform || '').toLowerCase() === 'google');
+    } else if (store.campaignFilter === 'meta') {
+      campaigns = campaigns.filter(c => (c.platform || '').toLowerCase() === 'meta');
     }
 
     // Apply Search
@@ -619,7 +820,8 @@ class AppController {
     // Filter Buttons state
     document.querySelectorAll('[data-campaign-filter]').forEach(btn => {
       const f = btn.getAttribute('data-campaign-filter');
-      if (f === store.campaignFilter) {
+      const isFilterActive = (f === store.campaignFilter) || (f === activePlatform && ['google', 'meta'].includes(f));
+      if (isFilterActive) {
         btn.classList.add('bg-[#1D1D1D]', 'text-white', 'border-white/20');
         btn.classList.remove('text-[#A3A3A3]', 'border-white/[0.08]');
       } else {
@@ -631,12 +833,22 @@ class AppController {
     // Table rows
     const tbody = document.getElementById('campaigns-table-body');
     if (tbody) {
-      tbody.innerHTML = campaigns.map(c => `
+      tbody.innerHTML = campaigns.map(c => {
+        const plat = (c.platform || '').toLowerCase();
+        const platDisplay = plat === 'google' ? 'Google Ads' : (plat === 'meta' ? 'Meta Ads' : 'Unknown');
+        const platColorClass = plat === 'google' ? 'text-white' : (plat === 'meta' ? 'text-[#D4D4D4]' : 'text-[#737373]');
+
+        return `
         <tr class="hover:bg-[#171717] transition border-b border-white/[0.06]">
           <td class="py-3 px-4 text-xs text-[#737373] font-medium">#${c.rank}</td>
           <td class="py-3 px-4">
             <div class="font-medium text-xs text-[#F5F5F5]">${c.name}</div>
             <div class="text-[11px] text-[#A3A3A3]">${c.specialty}</div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-[#171717] ${platColorClass} border border-white/[0.08]">
+              ${platDisplay}
+            </span>
           </td>
           <td class="py-3 px-4">
             <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-[#171717] text-[#A3A3A3] border border-white/[0.08]">
@@ -647,6 +859,7 @@ class AppController {
           <td class="py-3 px-4 text-right text-xs text-[#A3A3A3]">${formatNumber(c.clicks)}</td>
           <td class="py-3 px-4 text-right text-xs ${c.cpc > 50 ? 'text-white font-medium' : 'text-[#A3A3A3]'}">${formatINR(c.cpc)}</td>
           <td class="py-3 px-4 text-right text-xs text-[#A3A3A3]">${c.ctr}%</td>
+          <td class="py-3 px-4 text-right text-xs text-[#A3A3A3]">${formatNumber(c.leads || 0)}</td>
           <td class="py-3 px-4 text-right text-xs font-semibold ${c.conversions > 0 ? 'text-white' : 'text-[#737373]'}">
             ${c.conversions}
           </td>
@@ -670,7 +883,8 @@ class AppController {
             `}
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     }
 
     // Search input listener
@@ -688,7 +902,15 @@ class AppController {
       if (!btn._bound) {
         btn._bound = true;
         btn.addEventListener('click', () => {
-          store.setCampaignFilter(btn.getAttribute('data-campaign-filter'));
+          const filter = btn.getAttribute('data-campaign-filter');
+          if (filter === 'google' || filter === 'meta') {
+            store.setPlatformFilter(filter);
+          } else if (filter === 'all') {
+            store.setPlatformFilter('all');
+            store.setCampaignFilter('all');
+          } else {
+            store.setCampaignFilter(filter);
+          }
           this.renderCampaignsView();
         });
       }
@@ -1582,5 +1804,8 @@ class AppController {
 
 // Attach globally
 window.store = store;
+window.CsvEngine = CsvEngine;
 window.vsApp = new AppController();
+window.app = window.vsApp;
+
 

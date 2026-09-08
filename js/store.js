@@ -13,7 +13,8 @@ const STORAGE_KEYS = {
   COMP_REPORT: 'vs_ads_comp_report_id_v2',
   RECOMMENDATIONS: 'vs_ads_recommendations_v2',
   UPLOAD_HISTORY: 'vs_ads_upload_history_v2',
-  VIEW: 'vs_ads_active_view_v2'
+  VIEW: 'vs_ads_active_view_v2',
+  PLATFORM_FILTER: 'vs_ads_platform_filter_v2'
 };
 
 const safeStorage = {
@@ -124,6 +125,7 @@ class AdsStore {
 
     // UI state
     this.activeView = safeStorage.getItem(STORAGE_KEYS.VIEW) || 'overview';
+    this.platformFilter = safeStorage.getItem(STORAGE_KEYS.PLATFORM_FILTER) || 'all';
     this.campaignFilter = 'all';
     this.campaignSearch = '';
     this.campaignSortKey = 'rank';
@@ -158,13 +160,120 @@ class AdsStore {
     safeStorage.setItem(STORAGE_KEYS.UPLOAD_HISTORY, JSON.stringify(this.uploadHistory));
   }
 
+  // --- PLATFORM FILTERING & METRICS ABSTRACTION ---
+  static getCampaignPlatform(c) {
+    if (!c) return 'unknown';
+    if (c.platform) return c.platform.toLowerCase();
+    const ch = (c.channel || '').toLowerCase();
+    const sec = (c.section || '').toLowerCase();
+    if (ch === 'meta' || sec.includes('meta')) return 'meta';
+    if (ch === 'search' || ch === 'pmax' || ch === 'youtube' || ch === 'display' || sec.includes('google') || sec.includes('youtube')) return 'google';
+    return 'unknown';
+  }
+
+  static calculatePlatformMetrics(campaigns, periodDays = 7) {
+    let spend = 0;
+    let clicks = 0;
+    let impressions = 0;
+    let leads = 0;
+    let conversions = 0;
+    let phoneCalls = 0;
+    let sourceResults = 0;
+    let allConversions = 0;
+    let budget = 0;
+
+    campaigns.forEach(c => {
+      spend += (c.spend || 0);
+      clicks += (c.clicks || 0);
+      impressions += (c.impressions || 0);
+      leads += (c.leads || 0);
+      conversions += (c.conversions || 0);
+      phoneCalls += (c.phoneCalls || 0);
+      if (c.sourceResults) sourceResults += c.sourceResults;
+      allConversions += (c.allConversions || 0);
+      budget += (c.budget || 0);
+    });
+
+    const cpc = clicks > 0 ? parseFloat((spend / clicks).toFixed(2)) : 0;
+    const cpa = conversions > 0 ? Math.round(spend / conversions) : null;
+    const costPerAllConv = allConversions > 0 ? Math.round(spend / allConversions) : null;
+    const costPerResult = sourceResults > 0 ? parseFloat((spend / sourceResults).toFixed(2)) : null;
+    const ctr = impressions > 0 ? parseFloat(((clicks / impressions) * 100).toFixed(2)) : 0;
+    const conversionRate = clicks > 0 ? parseFloat(((conversions / clicks) * 100).toFixed(2)) : 0;
+    const finalBudget = budget > 0 ? budget : Math.round(spend * 1.35);
+
+    return {
+      budgetSummary: {
+        allocated: Math.round(finalBudget),
+        spent: Math.round(spend),
+        remaining: Math.max(0, Math.round(finalBudget - spend)),
+        dailyRunRate: periodDays > 0 ? Math.round(spend / periodDays) : 0,
+        spendRatePercent: finalBudget > 0 ? Math.min(100, parseFloat(((spend / finalBudget) * 100).toFixed(1))) : 0
+      },
+      metrics: {
+        spend: Math.round(spend),
+        totalSpend: Math.round(spend),
+        impressions,
+        clicks,
+        ctr,
+        cpc,
+        leads,
+        conversions,
+        phoneCalls,
+        sourceResults,
+        costPerResult,
+        allConversions,
+        allConversionsDerived: true,
+        cpa,
+        costPerAllConv,
+        conversionRate
+      }
+    };
+  }
+
+  getFilteredCampaigns(report, platform = this.platformFilter) {
+    if (!report || !report.campaigns) return [];
+    if (!platform || platform === 'all') return [...report.campaigns];
+    const target = platform.toLowerCase();
+    return report.campaigns.filter(c => AdsStore.getCampaignPlatform(c) === target);
+  }
+
+  getScopedReport(report, platform = this.platformFilter) {
+    if (!report) return null;
+    if (!platform || platform === 'all') return report;
+
+    const filteredCampaigns = this.getFilteredCampaigns(report, platform);
+    const periodDays = report.period && report.period.isMonthlyAggregate ? 28 : 7;
+    const calculated = AdsStore.calculatePlatformMetrics(filteredCampaigns, periodDays);
+
+    return {
+      ...report,
+      platformScope: platform,
+      campaigns: filteredCampaigns,
+      budgetSummary: calculated.budgetSummary,
+      metrics: calculated.metrics
+    };
+  }
+
   // --- REPORT ACCESSORS ---
   getActiveReport() {
     return this.reports.find(r => r.reportId === this.activeReportId) || this.reports[0] || null;
   }
 
+  getActiveReportScoped(platform = this.platformFilter) {
+    const raw = this.getActiveReport();
+    if (!raw) return null;
+    return this.getScopedReport(raw, platform);
+  }
+
   getComparisonReport() {
     return this.reports.find(r => r.reportId === this.comparisonReportId) || this.reports[1] || null;
+  }
+
+  getComparisonReportScoped(platform = this.platformFilter) {
+    const raw = this.getComparisonReport();
+    if (!raw) return null;
+    return this.getScopedReport(raw, platform);
   }
 
   getAllReports() {
@@ -419,9 +528,11 @@ class AdsStore {
     safeStorage.removeItem(STORAGE_KEYS.ACTIVE_REPORT);
     safeStorage.removeItem(STORAGE_KEYS.COMP_REPORT);
     safeStorage.removeItem(STORAGE_KEYS.RECOMMENDATIONS);
+    safeStorage.removeItem(STORAGE_KEYS.PLATFORM_FILTER);
     safeStorage.removeItem('vs_ads_reports_v1');
     safeStorage.removeItem('vs_ads_active_report_id_v1');
     safeStorage.removeItem('vs_ads_comp_report_id_v1');
+    this.platformFilter = 'all';
     this.notify('STORE_CLEARED');
   }
 
@@ -496,6 +607,17 @@ class AdsStore {
     this.activeView = viewName;
     safeStorage.setItem(STORAGE_KEYS.VIEW, viewName);
     this.notify('VIEW_CHANGED', { view: viewName });
+  }
+
+  setPlatformFilter(filter) {
+    const valid = ['all', 'google', 'meta', 'unknown'].includes(filter) ? filter : 'all';
+    this.platformFilter = valid;
+    safeStorage.setItem(STORAGE_KEYS.PLATFORM_FILTER, valid);
+    this.notify('PLATFORM_FILTER_CHANGED', { platform: valid });
+  }
+
+  getPlatformFilter() {
+    return this.platformFilter || 'all';
   }
 
   setCampaignFilter(filter) {

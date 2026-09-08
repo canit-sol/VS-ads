@@ -169,11 +169,20 @@
 
       <!-- Top Header Bar -->
       <header class="bg-[#090909]/95 backdrop-blur border-b border-white/[0.08] px-6 py-3.5 sticky top-0 z-20 flex flex-wrap items-center justify-between gap-4 no-print">
-        <div class="flex items-center space-x-3">
-          <span class="text-xs text-[#A3A3A3] font-normal">Reporting Cycle:</span>
-          <select id="top-period-select" class="bg-[#111111] border border-white/[0.08] text-xs font-medium text-[#F5F5F5] rounded-lg px-3 py-1.5 outline-none focus:border-white/30 transition cursor-pointer">
-            <!-- Populated via JS -->
-          </select>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-[#A3A3A3] font-normal">Cycle:</span>
+            <select id="top-period-select" class="bg-[#111111] border border-white/[0.08] text-xs font-medium text-[#F5F5F5] rounded-lg px-3 py-1.5 outline-none focus:border-white/30 transition cursor-pointer">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+
+          <!-- Platform Filter Tabs (All / Google / Meta) -->
+          <div class="flex items-center bg-[#111111] p-0.5 rounded-lg border border-white/[0.08] text-xs" id="top-platform-filter">
+            <button data-platform-tab="all" class="px-2.5 py-1 rounded-md font-medium transition bg-white text-black text-[11px]">All</button>
+            <button data-platform-tab="google" class="px-2.5 py-1 rounded-md font-medium transition text-[#A3A3A3] hover:text-[#F5F5F5] text-[11px]">Google</button>
+            <button data-platform-tab="meta" class="px-2.5 py-1 rounded-md font-medium transition text-[#A3A3A3] hover:text-[#F5F5F5] text-[11px]">Meta</button>
+          </div>
         </div>
 
         <!-- Sprint Quick Summary Strip -->
@@ -273,11 +282,43 @@
               </div>
             </div>
 
+            <!-- Clean Platform-Specific Empty State -->
+            <div id="overview-platform-empty" class="hidden bg-[#111111] border border-white/[0.08] rounded-xl p-12 text-center space-y-4 max-w-lg mx-auto">
+              <div class="w-12 h-12 rounded-full bg-[#171717] border border-white/[0.08] text-white flex items-center justify-center mx-auto">
+                <i data-lucide="layers" class="w-6 h-6"></i>
+              </div>
+              <div class="space-y-1.5">
+                <h3 id="overview-platform-empty-title" class="text-base font-semibold text-[#F5F5F5] tracking-tight">NO PLATFORM DATA</h3>
+                <p id="overview-platform-empty-desc" class="text-xs text-[#A3A3A3] leading-relaxed">
+                  No advertising data was recorded for this platform in the selected reporting cycle.
+                </p>
+              </div>
+              <div>
+                <button onclick="window.vsApp.setPlatformFilter('all')" class="bg-[#171717] hover:bg-[#222222] text-[#F5F5F5] text-xs font-medium px-3.5 py-1.5 rounded-lg border border-white/[0.08] transition inline-flex items-center space-x-1.5">
+                  <span>View All Platforms</span>
+                </button>
+              </div>
+            </div>
+
             <!-- UNIFIED KPI METRICS SECTION (Single Container With Dividers) -->
-            <div class="space-y-2">
-              <h3 class="text-xs font-medium text-[#A3A3A3]">Account Metrics Summary</h3>
+            <div id="overview-kpi-section" class="space-y-2">
+              <div class="flex items-center justify-between">
+                <h3 id="overview-kpi-heading" class="text-xs font-medium text-[#A3A3A3]">Account Metrics Summary</h3>
+                <span id="overview-kpi-platform-badge" class="text-[10px] text-[#A3A3A3] px-2 py-0.5 rounded bg-[#171717] border border-white/[0.08] font-medium tracking-wide">ALL PLATFORMS</span>
+              </div>
               <div id="overview-kpi-grid" class="bg-[#111111] border border-white/[0.08] rounded-xl overflow-hidden grid grid-cols-2 lg:grid-cols-4">
                 <!-- Populated via JS with 8 unified cells separated by subtle dividers -->
+              </div>
+            </div>
+
+            <!-- PLATFORM COMPARISON SECTION (Visible when All Platforms is selected) -->
+            <div id="overview-platform-comparison" class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-medium text-[#A3A3A3]">Platform Performance Breakdown</h3>
+                <span class="text-[11px] text-[#737373]">Google Ads vs. Meta Ads</span>
+              </div>
+              <div id="overview-platform-comparison-cards" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Populated via JS: Google card & Meta card -->
               </div>
             </div>
 
@@ -363,9 +404,19 @@
                 <button data-campaign-filter="all" class="px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#A3A3A3] hover:text-[#F5F5F5] transition">All</button>
                 <button data-campaign-filter="strong" class="px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#A3A3A3] hover:text-[#F5F5F5] transition">Strong</button>
                 <button data-campaign-filter="weak" class="px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#A3A3A3] hover:text-[#F5F5F5] transition">Action Needed</button>
-                <button data-campaign-filter="PMax" class="px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#A3A3A3] hover:text-[#F5F5F5] transition">PMax</button>
+                <span class="w-px h-4 bg-white/[0.08] mx-1"></span>
+                <button data-campaign-filter="google" class="px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#A3A3A3] hover:text-[#F5F5F5] transition">Google</button>
+                <button data-campaign-filter="meta" class="px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#A3A3A3] hover:text-[#F5F5F5] transition">Meta</button>
                 <button data-campaign-filter="Search" class="px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#A3A3A3] hover:text-[#F5F5F5] transition">Search</button>
+                <button data-campaign-filter="PMax" class="px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#A3A3A3] hover:text-[#F5F5F5] transition">PMax</button>
+                <button data-campaign-filter="YouTube" class="px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#A3A3A3] hover:text-[#F5F5F5] transition">YouTube</button>
               </div>
+            </div>
+
+            <!-- Clean Platform-Specific Empty State for Campaigns -->
+            <div id="campaigns-platform-empty" class="hidden bg-[#111111] border border-white/[0.08] rounded-xl p-10 text-center space-y-3">
+              <h4 id="campaigns-platform-empty-title" class="text-sm font-semibold text-[#F5F5F5]">NO PLATFORM CAMPAIGNS</h4>
+              <p id="campaigns-platform-empty-desc" class="text-xs text-[#A3A3A3]">No campaigns found for this platform in the selected reporting cycle.</p>
             </div>
 
             <!-- CPA Efficiency Horizontal Bar Chart -->
@@ -402,11 +453,13 @@
                   <tr class="bg-[#0E0E0E] border-b border-white/[0.08] text-[#A3A3A3] text-[11px] font-medium cursor-pointer">
                     <th class="py-3 px-4" data-sort-key="rank">#</th>
                     <th class="py-3 px-4" data-sort-key="name">Campaign & Specialty</th>
+                    <th class="py-3 px-4" data-sort-key="platform">Platform</th>
                     <th class="py-3 px-4" data-sort-key="channel">Channel</th>
                     <th class="py-3 px-4 text-right" data-sort-key="spend">Spend</th>
                     <th class="py-3 px-4 text-right" data-sort-key="clicks">Clicks</th>
                     <th class="py-3 px-4 text-right" data-sort-key="cpc">Avg CPC</th>
                     <th class="py-3 px-4 text-right" data-sort-key="ctr">CTR</th>
+                    <th class="py-3 px-4 text-right" data-sort-key="leads">Leads</th>
                     <th class="py-3 px-4 text-right" data-sort-key="conversions">Conversions</th>
                     <th class="py-3 px-4 text-right" data-sort-key="phoneCalls">Calls</th>
                     <th class="py-3 px-4 text-right" data-sort-key="cpa">CPA</th>

@@ -3,7 +3,7 @@
  * Dark Editorial Analytics Palette: Muted Teal, Restrained Terracotta, Subtle Grids
  */
 
-import { formatINR } from './store.js';
+import { store, formatINR } from './store.js';
 
 export class ChartManager {
   static instances = {};
@@ -27,7 +27,7 @@ export class ChartManager {
   /**
    * Render Dual-Axis Weekly Velocity Chart (Conversions Bar + CPA Line)
    */
-  static renderVelocityChart(canvasId, reports) {
+  static renderVelocityChart(canvasId, reports, platform = 'all') {
     if (typeof Chart === 'undefined') return;
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
@@ -46,6 +46,12 @@ export class ChartManager {
         const nameLower = (r.periodName || '').toLowerCase();
         if (idLower.includes('cumulative') || nameLower.includes('monthly')) return false;
         return idLower.includes('_w') || nameLower.includes('week');
+      })
+      .map(r => {
+        if (platform && platform !== 'all' && store && store.getScopedReport) {
+          return store.getScopedReport(r, platform);
+        }
+        return r;
       })
       .sort((a, b) => {
         const startA = a.period?.startDate || a.uploadedAt || a.reportId || '';
@@ -72,8 +78,19 @@ export class ChartManager {
       const rawName = r.period ? r.period.periodLabel : (r.periodName || 'Week');
       return rawName.split('·')[0].split('(')[0].trim();
     });
-    const conversions = weeklyReports.map(r => r.metrics?.conversions || 0);
-    const cpas = weeklyReports.map(r => r.metrics?.cpa || (r.metrics?.conversions ? Math.round(r.metrics.spend / r.metrics.conversions) : null));
+
+    const isMeta = platform === 'meta';
+    const conversions = weeklyReports.map(r => {
+      if (isMeta && r.metrics?.sourceResults) return r.metrics.sourceResults;
+      return r.metrics?.conversions || 0;
+    });
+    const cpas = weeklyReports.map(r => {
+      if (isMeta && r.metrics?.costPerResult) return r.metrics.costPerResult;
+      return r.metrics?.cpa || (r.metrics?.conversions ? Math.round(r.metrics.spend / r.metrics.conversions) : null);
+    });
+
+    const convLabel = isMeta ? 'Results' : 'Recorded Conversions';
+    const cpaLabel = isMeta ? 'Cost Per Result (CPR)' : 'Cost Per Acquisition (CPA)';
 
     const ctx = canvas.getContext('2d');
 
@@ -83,7 +100,7 @@ export class ChartManager {
         labels,
         datasets: [
           {
-            label: 'Recorded Conversions',
+            label: convLabel,
             data: conversions,
             backgroundColor: 'rgba(255, 255, 255, 0.85)',
             borderColor: '#FFFFFF',
@@ -94,7 +111,7 @@ export class ChartManager {
             order: 2
           },
           {
-            label: 'Cost Per Acquisition (CPA)',
+            label: cpaLabel,
             data: cpas,
             type: 'line',
             borderColor: '#737373',

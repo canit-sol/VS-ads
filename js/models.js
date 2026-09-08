@@ -20,7 +20,9 @@
  * @typedef {Object} CampaignMetric
  * @property {string} id - Unique campaign metric ID
  * @property {string} name - Normalized campaign name (e.g. "Kilpauk PMax")
- * @property {'PMax'|'Search'|'Display'} channel - Advertising channel type
+ * @property {'google'|'meta'|'unknown'} platform - Advertising platform ('google' | 'meta' | 'unknown')
+ * @property {'Search'|'PMax'|'YouTube'|'Meta'|'Display'|'Other'} channel - Advertising channel type
+ * @property {string} [section] - Source section header name
  * @property {string} specialty - Medical specialty or location (e.g. "Kilpauk Multispeciality")
  * @property {number} spend - Total spend in INR (₹)
  * @property {number} impressions - Impression count
