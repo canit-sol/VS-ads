@@ -140,6 +140,103 @@ export class PeriodEngine {
   }
 
   /**
+   * Parse a column header representing a reporting period or month
+   * Handles date ranges (e.g. "July 1 - 5 2026", "August 1 - 28, 2026", "Sept 1 - 6, 2026")
+   * and month-only aggregates (e.g. "July 2026").
+   * @param {string} headerStr
+   * @returns {import('./models.js').ReportingPeriod|null}
+   */
+  static parsePeriodHeader(headerStr) {
+    if (!headerStr || typeof headerStr !== 'string') return null;
+    const trimmed = headerStr.trim();
+    if (!trimmed) return null;
+
+    // Detect month name
+    const textMonthRegex = /\b(january|february|march|april|may|june|july|august|september|sept|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\b/i;
+    const mMatch = trimmed.match(textMonthRegex);
+    if (!mMatch) return null;
+
+    const mRaw = mMatch[1].toLowerCase();
+    let monthIndex = MONTH_NAMES.findIndex(m => m.toLowerCase().startsWith(mRaw.slice(0, 3)));
+    if (monthIndex === -1) {
+      monthIndex = MONTH_SHORT_NAMES.findIndex(m => m.toLowerCase() === mRaw.slice(0, 3));
+    }
+    if (monthIndex === -1) return null;
+
+    const monthName = MONTH_NAMES[monthIndex];
+    const monthShort = MONTH_SHORT_NAMES[monthIndex];
+
+    // Detect year
+    const yearMatch = trimmed.match(/\b(20\d{2})\b/);
+    const year = yearMatch ? parseInt(yearMatch[1], 10) : 2026;
+
+    // Check if month-only aggregate (e.g. "July 2026")
+    const withoutMonthYear = trimmed.replace(textMonthRegex, '').replace(/\b20\d{2}\b/, '').replace(/[,.\s]/g, '');
+    if (!withoutMonthYear) {
+      const startDate = new Date(year, monthIndex, 1);
+      const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+      const endDate = new Date(year, monthIndex, lastDay);
+      const periodId = `${year}_M${String(monthIndex + 1).padStart(2, '0')}_MONTH`;
+      return {
+        periodId,
+        year,
+        month: monthName,
+        monthNumber: monthIndex + 1,
+        weekNumber: 0,
+        startDate: this.toISODate(startDate),
+        endDate: this.toISODate(endDate),
+        periodLabel: `Monthly Summary · ${monthName} ${year}`,
+        isMonthlyAggregate: true
+      };
+    }
+
+    // Check day range (e.g. "1 - 5", "6 - 12", "1 - 28")
+    const rangeMatch = trimmed.match(/\b(\d{1,2})\s*(?:[-–—]|to)\s*(\d{1,2})\b/i);
+    if (rangeMatch) {
+      const startDay = parseInt(rangeMatch[1], 10);
+      const endDay = parseInt(rangeMatch[2], 10);
+
+      const startDate = new Date(year, monthIndex, startDay);
+      const endDate = new Date(year, monthIndex, endDay);
+
+      // Multi-week or month aggregate (e.g. "August 1 - 28, 2026")
+      const isMultiWeek = (endDay - startDay) >= 20;
+
+      let weekNumber = 1;
+      let periodId;
+      let periodLabel;
+
+      if (isMultiWeek) {
+        periodId = `${year}_M${String(monthIndex + 1).padStart(2, '0')}_AGG${endDay}`;
+        periodLabel = `${monthShort} ${startDay}–${endDay}, ${year} (Aggregate)`;
+      } else {
+        if (endDay <= 9) weekNumber = 1;
+        else if (startDay >= 6 && endDay <= 16) weekNumber = 2;
+        else if (startDay >= 13 && endDay <= 23) weekNumber = 3;
+        else if (startDay >= 20 && endDay <= 29) weekNumber = 4;
+        else weekNumber = 5;
+
+        periodId = `${year}_M${String(monthIndex + 1).padStart(2, '0')}_W${String(weekNumber).padStart(2, '0')}`;
+        periodLabel = `Week ${weekNumber} · ${monthShort} ${startDay}–${endDay}, ${year}`;
+      }
+
+      return {
+        periodId,
+        year,
+        month: monthName,
+        monthNumber: monthIndex + 1,
+        weekNumber: isMultiWeek ? 0 : weekNumber,
+        startDate: this.toISODate(startDate),
+        endDate: this.toISODate(endDate),
+        periodLabel,
+        isMonthlyAggregate: isMultiWeek
+      };
+    }
+
+    return null;
+  }
+
+  /**
    * Classify day of month into standard 7-day reporting weeks
    * Days 1-7: Week 1
    * Days 8-14: Week 2

@@ -37,9 +37,8 @@ const safeStorage = {
 };
 
 export const CONFIG = {
-  // Flag controlling whether default reports are preloaded when storage is empty.
-  // Set to true so first-time visitors (like VS Hospitals team) immediately see active reports.
-  LOAD_SAMPLE_DATA_BY_DEFAULT: true
+  // Requirement 15: App starts with an empty report store unless sample data is explicitly loaded (?sample=true)
+  LOAD_SAMPLE_DATA_BY_DEFAULT: false
 };
 
 class AdsStore {
@@ -312,6 +311,11 @@ class AdsStore {
       return r.period.periodId === p.periodId ||
              (r.period.startDate === p.startDate && r.period.endDate === p.endDate);
     });
+
+    // Allow real uploaded data to automatically supersede preloaded system sample reports
+    if (existingIndex !== -1 && this.reports[existingIndex].sourceType === 'system' && mode === 'add') {
+      mode = 'replace';
+    }
 
     if (existingIndex !== -1 && mode === 'add') {
       const existing = this.reports[existingIndex];

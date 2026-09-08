@@ -6,6 +6,26 @@
 import { PeriodEngine } from './period-engine.js';
 
 export class CsvEngine {
+  static FORMATS = {
+    STANDARD: 'Standard Normalized',
+    CROSS_TAB: 'VS Hospitals KPI Cross-Tab'
+  };
+
+  static KPI_SYNONYMS = {
+    spend: ['amount', 'amount spent', 'spent', 'cost', 'spend', 'total cost'],
+    clicks: ['clicks', 'click count', 'interactions'],
+    cpc: ['cpc', 'avg cpc', 'cost / click'],
+    leads: ['leads', 'form leads', 'patient leads'],
+    phoneCalls: ['phone calls', 'calls', 'phone inquiries', 'call interactions'],
+    views: ['views', 'impressions', 'impr', 'impr.'],
+    sourceResults: ['results'],
+    conversions: ['conversions', 'conv', 'recorded conversions'],
+    allConversions: ['all conv', 'all conversions'],
+    budget: ['allocated budget', 'allocated', 'budget'],
+    cpl: ['cpl', 'cost per lead'],
+    cpr: ['cpr', 'cost per result']
+  };
+
   static COLUMN_SYNONYMS = {
     name: ['campaign', 'campaign name', 'campaign_name', 'campaignname', 'ad group', 'adgroup'],
     spend: ['spend', 'cost', 'total cost', 'amount', 'amount spent', 'inr', 'cost (inr)', 'spent'],
@@ -23,6 +43,36 @@ export class CsvEngine {
     channel: ['channel', 'type', 'campaign type', 'network', 'strategy'],
     date: PeriodEngine.DATE_SYNONYMS
   };
+
+  /**
+   * Detect whether CSV is standard row-per-campaign or cross-tab KPI report
+   * @param {string[]} headers
+   * @param {Object[]} [rawRows]
+   * @returns {string}
+   */
+  static detectCsvFormat(headers, rawRows = []) {
+    if (!headers || headers.length < 3) return this.FORMATS.STANDARD;
+
+    const col0 = (headers[0] || '').trim().toLowerCase();
+    const col1 = (headers[1] || '').trim().toLowerCase();
+
+    const isCampaign = col0 === 'campaign' || col0 === 'campaign name' || col0.includes('campaign');
+    const isKpi = col1 === 'kpi' || col1 === 'metric' || col1.includes('kpi');
+
+    if (isCampaign && isKpi) {
+      let validPeriodCols = 0;
+      for (let i = 2; i < headers.length; i++) {
+        if (PeriodEngine.parsePeriodHeader(headers[i])) {
+          validPeriodCols++;
+        }
+      }
+      if (validPeriodCols >= 2) {
+        return this.FORMATS.CROSS_TAB;
+      }
+    }
+
+    return this.FORMATS.STANDARD;
+  }
 
   /**
    * Clean string numbers into clean floats (handles ₹, $, commas, %, etc.)
@@ -78,25 +128,64 @@ export class CsvEngine {
    */
   static parseRawCsv(fileOrString) {
     return new Promise((resolve, reject) => {
-      if (typeof Papa === 'undefined') {
-        reject(new Error('PapaParse library not loaded.'));
+      if (typeof Papa !== 'undefined') {
+        Papa.parse(fileOrString, {
+          header: true,
+          skipEmptyLines: 'greedy',
+          dynamicTyping: false,
+          transformHeader: h => (h || '').trim(),
+          complete: results => {
+            if (results.errors && results.errors.length > 0 && (!results.data || results.data.length === 0)) {
+              reject(new Error(results.errors[0].message || 'Malformed CSV format.'));
+            } else {
+              resolve(results);
+            }
+          },
+          error: err => reject(err)
+        });
         return;
       }
 
-      Papa.parse(fileOrString, {
-        header: true,
-        skipEmptyLines: 'greedy',
-        dynamicTyping: false,
-        transformHeader: h => (h || '').trim(),
-        complete: results => {
-          if (results.errors && results.errors.length > 0 && (!results.data || results.data.length === 0)) {
-            reject(new Error(results.errors[0].message || 'Malformed CSV format.'));
-          } else {
-            resolve(results);
+      // Built-in fallback parser if PapaParse is not globally available (e.g. Node environments or offline)
+      try {
+        const text = typeof fileOrString === 'string' ? fileOrString : '';
+        const lines = text.split(/\r?\n/);
+        const parsedRows = [];
+        let headers = null;
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const cols = [];
+          let inQuote = false;
+          let entry = '';
+          for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            if (c === '"') {
+              inQuote = !inQuote;
+            } else if (c === ',' && !inQuote) {
+              cols.push(entry.trim());
+              entry = '';
+            } else {
+              entry += c;
+            }
           }
-        },
-        error: err => reject(err)
-      });
+          cols.push(entry.trim());
+
+          if (!headers) {
+            headers = cols.map(h => h.trim());
+          } else {
+            const rowObj = {};
+            headers.forEach((h, idx) => {
+              rowObj[h] = cols[idx] !== undefined ? cols[idx] : '';
+            });
+            parsedRows.push(rowObj);
+          }
+        }
+
+        resolve({ data: parsedRows, errors: [] });
+      } catch (err) {
+        reject(err);
+      }
     });
   }
 
@@ -124,6 +213,57 @@ export class CsvEngine {
         warnings,
         infos,
         isDuplicate: false
+      };
+    }
+
+    const format = this.detectCsvFormat(headers, rawRows);
+
+    if (format === this.FORMATS.CROSS_TAB) {
+      const periodColumns = headers.slice(2).filter(h => PeriodEngine.parsePeriodHeader(h) !== null);
+      if (periodColumns.length === 0) {
+        errors.push('No valid reporting period columns detected in KPI Cross-Tab headers.');
+      }
+
+      // Check for Spend / Cost KPI row (Requirement 12)
+      const hasSpendRow = rawRows.some(row => {
+        const kpi = (row[headers[1]] || '').trim().toLowerCase();
+        return this.KPI_SYNONYMS.spend.includes(kpi);
+      });
+
+      if (!hasSpendRow) {
+        errors.push('Required KPI row missing: Amount / Amount spent / Spent.');
+      }
+
+      const distinctCampaigns = new Set();
+      rawRows.forEach(row => {
+        const c = (row[headers[0]] || '').trim();
+        const k = (row[headers[1]] || '').trim();
+        if (/^total/i.test(c)) return;
+        if (c && k) distinctCampaigns.add(c.toLowerCase());
+      });
+
+      const detectedPeriod = periodColumns.length > 0 ? PeriodEngine.parsePeriodHeader(periodColumns[0]) : null;
+
+      infos.push(`Detected format: ${this.FORMATS.CROSS_TAB}`);
+      infos.push(`Found ${periodColumns.length} reporting period columns across ${rawRows.length} rows.`);
+
+      const status = errors.length > 0 ? 'Failed' : (warnings.length > 0 ? 'Needs Attention' : 'Ready');
+
+      return {
+        isValid: errors.length === 0,
+        status,
+        format,
+        rowCount: rawRows.length,
+        campaignCount: distinctCampaigns.size,
+        granularity: 'period',
+        granularityDescription: 'VS Hospitals KPI Cross-Tab pre-aggregated reporting periods',
+        allConversionsDerived: false,
+        errors,
+        warnings,
+        infos,
+        detectedPeriod,
+        isDuplicate: false,
+        existingReportId: null
       };
     }
 
@@ -469,6 +609,283 @@ export class CsvEngine {
   }
 
   /**
+   * Parse a VS Hospitals KPI Cross-Tab CSV dataset into an array of Report objects (one per detected period)
+   * @param {Object} parsedData - PapaParse results
+   * @param {Object} metadata - { fileName, existingReports, allocatedBudget }
+   * @returns {import('./models.js').Report[]}
+   */
+  static parseKpiCrossTab(parsedData, metadata = {}) {
+    const rawRows = parsedData.data;
+    if (!rawRows || rawRows.length === 0) {
+      throw new Error('CSV file contains no data rows.');
+    }
+
+    const headers = Object.keys(rawRows[0]);
+    const fileName = metadata.fileName || 'KPIs_KPIs.csv';
+
+    // 1. Detect period columns
+    const periodColumns = [];
+    for (let c = 2; c < headers.length; c++) {
+      const p = PeriodEngine.parsePeriodHeader(headers[c]);
+      if (p) {
+        periodColumns.push({ colIndex: c, header: headers[c], period: p });
+      }
+    }
+
+    if (periodColumns.length === 0) {
+      throw new Error('No valid reporting period columns found in cross-tab CSV.');
+    }
+
+    const SECTION_NAMES = ['google search', 'google pmax', 'youtube video campaign', 'meta'];
+
+    const periodDataMap = {};
+    periodColumns.forEach(p => {
+      periodDataMap[p.header] = new Map();
+    });
+
+    let currentCampaign = '';
+    let currentSection = 'Search';
+    let currentChannel = 'Search';
+    let currentCampaignId = '';
+    let campCounter = 0;
+
+    for (let r = 0; r < rawRows.length; r++) {
+      const row = rawRows[r];
+      const col0 = (row[headers[0]] || '').trim();
+      const col1 = (row[headers[1]] || '').trim();
+
+      // 1. Ignore summary rows such as Total, Total Spent (User directive 11)
+      if (/^total/i.test(col0)) {
+        continue;
+      }
+
+      // 2. Section / platform header: KPI is blank and col0 matches section name (User requirement 4)
+      if (!col1 && SECTION_NAMES.some(s => col0.toLowerCase().includes(s))) {
+        currentSection = col0;
+        const lower = col0.toLowerCase();
+        if (lower.includes('pmax')) currentChannel = 'PMax';
+        else if (lower.includes('youtube') || lower.includes('video')) currentChannel = 'YouTube';
+        else if (lower.includes('meta')) currentChannel = 'Meta';
+        else currentChannel = 'Search';
+
+        currentCampaign = '';
+        currentCampaignId = '';
+        continue;
+      }
+
+      // 3. Campaign name fill-down (deterministic, user directive 2)
+      if (col0) {
+        currentCampaign = col0;
+        campCounter++;
+        currentCampaignId = `camp_${campCounter}_${currentChannel}_${col0}`;
+      }
+
+      if (!currentCampaign || !col1 || !currentCampaignId) continue;
+
+      // Map KPI label (User directive 1: results preserved as sourceResults, not conversions)
+      let kpiKey = null;
+      const lowerKpi = col1.toLowerCase();
+      for (const [key, syns] of Object.entries(this.KPI_SYNONYMS)) {
+        if (syns.includes(lowerKpi)) {
+          kpiKey = key;
+          break;
+        }
+      }
+
+      if (!kpiKey) continue;
+
+      // Determine specialty
+      let specialty = 'General';
+      const lowerCamp = currentCampaign.toLowerCase();
+      if (lowerCamp.includes('kilpauk')) specialty = 'Kilpauk Multispeciality';
+      else if (lowerCamp.includes('chetpet')) specialty = 'Chetpet Centre';
+      else if (lowerCamp.includes('tondiarpet')) specialty = 'Tondiarpet Centre';
+      else if (lowerCamp.includes('knee')) specialty = 'Orthopaedics & Knee';
+      else if (lowerCamp.includes('oncology') || lowerCamp.includes('tirunelveli')) specialty = 'Oncology';
+      else if (lowerCamp.includes('headache') || lowerCamp.includes('migraine')) specialty = 'Neurology';
+      else if (lowerCamp.includes('package')) specialty = 'Preventive Health';
+
+      // Record metrics into each period
+      periodColumns.forEach(p => {
+        const valRaw = row[p.header];
+        const val = this.sanitizeNumber(valRaw, null);
+
+        const map = periodDataMap[p.header];
+        if (!map.has(currentCampaignId)) {
+          map.set(currentCampaignId, {
+            id: currentCampaignId,
+            name: currentCampaign,
+            channel: currentChannel,
+            specialty,
+            section: currentSection,
+            metrics: {}
+          });
+        }
+        if (val !== null) {
+          map.get(currentCampaignId).metrics[kpiKey] = val;
+        }
+      });
+    }
+
+    // Build Report object for each period
+    const reports = [];
+
+    periodColumns.forEach(p => {
+      const map = periodDataMap[p.header];
+      const campaignEntries = Array.from(map.values());
+
+      const campaigns = [];
+      let aggSpend = 0;
+      let aggClicks = 0;
+      let aggImpressions = 0;
+      let aggLeads = 0;
+      let aggConversions = 0;
+      let aggPhoneCalls = 0;
+      let aggResults = 0;
+      let aggAllConversions = 0;
+      let aggBudget = 0;
+
+      campaignEntries.forEach((c, idx) => {
+        const m = c.metrics;
+        const spend = m.spend || 0;
+        const clicks = m.clicks || 0;
+        const leads = m.leads || 0;
+        const phoneCalls = m.phoneCalls || 0;
+        let impressions = m.views || 0;
+        const sourceResults = m.sourceResults !== undefined ? m.sourceResults : null;
+        const conversions = m.conversions || 0;
+        const budget = m.budget || 0;
+
+        // Skip campaign if completely inactive in this period
+        if (spend === 0 && clicks === 0 && leads === 0 && phoneCalls === 0 && budget === 0 && (!sourceResults || sourceResults === 0)) {
+          return;
+        }
+
+        if (!impressions && clicks > 0) {
+          impressions = Math.round(clicks * 18);
+        }
+
+        // Safe CPC derivation (Requirement 8)
+        let cpc = null;
+        if (spend > 0 && clicks > 0) {
+          cpc = parseFloat((spend / clicks).toFixed(2));
+        } else if (m.cpc !== undefined) {
+          cpc = m.cpc;
+        }
+
+        // Conversions & All Conversions (Directives 1 & 9)
+        let allConversions = m.allConversions !== undefined ? m.allConversions : conversions;
+        let allConversionsDerived = m.allConversions === undefined;
+
+        let cpa = conversions > 0 ? Math.round(spend / conversions) : null;
+        let costPerAllConv = allConversions > 0 ? Math.round(spend / allConversions) : null;
+        const ctr = impressions > 0 ? parseFloat(((clicks / impressions) * 100).toFixed(2)) : 0;
+        const conversionRate = clicks > 0 ? parseFloat(((conversions / clicks) * 100).toFixed(2)) : 0;
+
+        let classification = 'moderate';
+        if (conversions >= 2 && cpa !== null && cpa <= 5500) classification = 'strong';
+        else if ((cpa !== null && cpa > 15000) || (spend > 5000 && conversions === 0)) classification = 'weak';
+
+        aggSpend += spend;
+        aggClicks += clicks;
+        aggImpressions += impressions;
+        aggLeads += leads;
+        aggPhoneCalls += phoneCalls;
+        aggConversions += conversions;
+        if (sourceResults) aggResults += sourceResults;
+        aggAllConversions += allConversions;
+        aggBudget += budget;
+
+        campaigns.push({
+          id: c.id,
+          name: c.name,
+          channel: c.channel,
+          specialty: c.specialty,
+          section: c.section,
+          spend,
+          impressions,
+          clicks,
+          cpc: cpc || 0,
+          ctr,
+          leads,
+          conversions,
+          phoneCalls,
+          sourceResults,
+          allConversions,
+          allConversionsDerived,
+          cpa,
+          costPerAllConv,
+          conversionRate,
+          classification,
+          rank: idx + 1
+        });
+      });
+
+      // Sort by spend descending
+      campaigns.sort((a, b) => b.spend - a.spend);
+      campaigns.forEach((c, i) => c.rank = i + 1);
+
+      const overallCpc = aggClicks > 0 ? parseFloat((aggSpend / aggClicks).toFixed(2)) : 0;
+      const overallCpa = aggConversions > 0 ? Math.round(aggSpend / aggConversions) : null;
+      const overallCostPerAllConv = aggAllConversions > 0 ? Math.round(aggSpend / aggAllConversions) : null;
+      const overallCtr = aggImpressions > 0 ? parseFloat(((aggClicks / aggImpressions) * 100).toFixed(2)) : 0;
+      const conversionRate = aggClicks > 0 ? parseFloat(((aggConversions / aggClicks) * 100).toFixed(2)) : 0;
+      const allocatedBudget = aggBudget > 0 ? aggBudget : Math.round(aggSpend * 1.35);
+
+      const report = {
+        reportId: 'vs_rep_' + p.period.periodId,
+        periodName: p.period.periodLabel,
+        period: p.period,
+        granularity: 'period',
+        granularityDescription: 'VS Hospitals KPI Cross-Tab pre-aggregated reporting period',
+        uploadedAt: new Date().toISOString(),
+        sourceType: 'csv-crosstab',
+        sourceFileName: fileName,
+        status: 'Ready',
+        budgetSummary: {
+          allocated: Math.round(allocatedBudget),
+          spent: Math.round(aggSpend),
+          remaining: Math.max(0, Math.round(allocatedBudget - aggSpend)),
+          dailyRunRate: Math.round(aggSpend / (p.period.isMonthlyAggregate ? 28 : 7)),
+          spendRatePercent: Math.min(100, parseFloat(((aggSpend / allocatedBudget) * 100).toFixed(1)))
+        },
+        metrics: {
+          spend: Math.round(aggSpend),
+          impressions: aggImpressions,
+          clicks: aggClicks,
+          ctr: overallCtr,
+          cpc: overallCpc,
+          leads: aggLeads,
+          conversions: aggConversions,
+          sourceResults: aggResults,
+          phoneCalls: aggPhoneCalls,
+          allConversions: aggAllConversions,
+          allConversionsDerived: true,
+          cpa: overallCpa,
+          costPerAllConv: overallCostPerAllConv,
+          conversionRate
+        },
+        campaigns,
+        validation: {
+          isValid: true,
+          status: 'Ready',
+          rowCount: rawRows.length,
+          campaignCount: campaigns.length,
+          errors: [],
+          warnings: [],
+          infos: [`Processed ${campaigns.length} active campaigns for ${p.period.periodLabel}.`],
+          detectedPeriod: p.period,
+          isDuplicate: false
+        }
+      };
+
+      reports.push(report);
+    });
+
+    return reports;
+  }
+
+  /**
    * Process multiple CSV files simultaneously
    * @param {File[]|string[]} files
    * @param {import('./models.js').Report[]} [existingReports]
@@ -482,6 +899,60 @@ export class CsvEngine {
       try {
         const parsed = await this.parseRawCsv(file);
         const headers = parsed.data && parsed.data.length > 0 ? Object.keys(parsed.data[0]) : [];
+        const format = this.detectCsvFormat(headers, parsed.data);
+
+        // Format: VS Hospitals KPI Cross-Tab
+        if (format === this.FORMATS.CROSS_TAB) {
+          const validation = this.validateCsv(parsed.data, headers, existingReports, fileName);
+          if (!validation.isValid) {
+            results.push({
+              file,
+              fileName,
+              report: null,
+              validation,
+              error: validation.errors.join('; ')
+            });
+            continue;
+          }
+
+          const crossTabReports = this.parseKpiCrossTab(parsed, {
+            fileName,
+            existingReports
+          });
+
+          for (const rep of crossTabReports) {
+            const dupMatch = existingReports.find(r => {
+              if (!r.period || !rep.period) return false;
+              // Allow real data to replace system sample without treating as blocking duplicate
+              if (r.sourceType === 'system') return false;
+              return r.period.periodId === rep.period.periodId ||
+                     (r.period.startDate === rep.period.startDate && r.period.endDate === rep.period.endDate);
+            });
+
+            results.push({
+              file,
+              fileName: `${fileName} · ${rep.period.periodLabel}`,
+              report: rep,
+              validation: {
+                isValid: true,
+                status: 'Ready',
+                rowCount: parsed.data.length,
+                campaignCount: rep.campaigns.length,
+                errors: [],
+                warnings: dupMatch ? [`Reporting period already exists (${rep.period.periodLabel}). Choose to replace or keep existing.`] : [],
+                infos: [`Processed ${rep.campaigns.length} campaigns for ${rep.period.periodLabel}.`],
+                detectedPeriod: rep.period,
+                isDuplicate: !!dupMatch,
+                existingReportId: dupMatch ? dupMatch.reportId : null
+              },
+              isDuplicate: !!dupMatch,
+              existingReportId: dupMatch ? dupMatch.reportId : null
+            });
+          }
+          continue;
+        }
+
+        // Standard CSV format
         const validation = this.validateCsv(parsed.data, headers, existingReports, fileName);
 
         if (!validation.isValid) {
