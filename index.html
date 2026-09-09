@@ -183,6 +183,11 @@
             <button data-platform-tab="google" class="px-2.5 py-1 rounded-md font-medium transition text-[#A3A3A3] hover:text-[#F5F5F5] text-[11px]">Google</button>
             <button data-platform-tab="meta" class="px-2.5 py-1 rounded-md font-medium transition text-[#A3A3A3] hover:text-[#F5F5F5] text-[11px]">Meta</button>
           </div>
+
+          <!-- Global Environment Status Indicator -->
+          <div id="hdr-environment-badge" class="hidden items-center space-x-1.5 px-2.5 py-1 rounded-md text-[11px] border">
+            <!-- Dynamic via JS -->
+          </div>
         </div>
 
         <!-- Sprint Quick Summary Strip -->
@@ -779,6 +784,27 @@
             </p>
           </div>
 
+          <!-- Public Visitor Live Global Notice (Shown on GitHub Pages / public read-only mode) -->
+          <div id="public-visitor-notice" class="hidden bg-[#111111] border border-white/[0.08] p-5 rounded-xl space-y-2 text-xs">
+            <div class="flex items-center space-x-2 text-white font-medium">
+              <span class="w-2 h-2 rounded-full bg-white"></span>
+              <span>Live Global Dataset · Read-Only Mode</span>
+            </div>
+            <p class="text-[#A3A3A3] leading-relaxed">
+              You are viewing the globally published VS Hospitals advertising performance dataset directly from <code class="text-white bg-[#171717] px-1 py-0.5 rounded">data/reports.json</code>.
+              Data upload and publishing capabilities are enabled exclusively in the local authenticated administrator environment.
+            </p>
+          </div>
+
+          <!-- Stage 1 Section Header (Local Admin Mode) -->
+          <div id="admin-stage-1-header" class="flex items-center justify-between pt-1">
+            <div class="flex items-center space-x-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-white/40"></span>
+              <h3 class="text-xs font-semibold text-[#F5F5F5] uppercase tracking-wider">Stage 1 · Upload & Validate</h3>
+            </div>
+            <span class="text-[11px] text-[#737373]">Local staging & preview</span>
+          </div>
+
           <!-- Upload Area -->
           <div id="csv-dropzone" class="border border-dashed border-white/[0.12] hover:border-white/40 bg-[#111111] hover:bg-[#171717] p-10 rounded-xl text-center cursor-pointer transition flex flex-col items-center justify-center space-y-3">
             <input id="csv-file-input" type="file" accept=".csv,text/csv" multiple class="hidden">
@@ -809,6 +835,26 @@
           <!-- Batch Ingestion & Validation Review Area (Appears after upload) -->
           <div id="batch-validation-container" class="hidden space-y-4">
             <!-- Populated via JS -->
+          </div>
+
+          <!-- Stage 2: Global Publishing Panel (Local Admin Mode Only) -->
+          <div id="global-publish-panel" class="bg-[#111111] border border-white/[0.08] p-6 rounded-xl space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="space-y-1">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-white"></span>
+                  <h3 class="text-sm font-semibold text-[#F5F5F5]">Stage 2 · Global Publishing</h3>
+                </div>
+                <p class="text-xs text-[#A3A3A3]" id="global-publish-status-text">
+                  Publish verified reporting periods to GitHub Pages so all visitors see this exact dataset.
+                </p>
+              </div>
+              <button id="btn-publish-globally" onclick="window.vsApp.openPublishConfirmModal()" class="bg-white hover:bg-[#E5E5E5] text-black text-xs font-semibold px-4 py-2.5 rounded-lg transition inline-flex items-center justify-center space-x-2 shadow-sm flex-shrink-0">
+                <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                <span>Publish Globally to GitHub</span>
+              </button>
+            </div>
+            <div id="publish-feedback-alert" class="hidden p-3.5 rounded-lg border text-xs leading-relaxed"></div>
           </div>
 
           <!-- Upload History -->
@@ -999,6 +1045,44 @@
       <div class="flex justify-end space-x-2 pt-3 border-t border-white/[0.08]">
         <button onclick="window.vsApp.closeAddRecModal()" class="px-3.5 py-1.5 rounded-lg bg-[#171717] hover:bg-[#1D1D1D] text-[#A3A3A3] hover:text-[#F5F5F5] text-xs font-medium border border-white/[0.08] transition">Cancel</button>
         <button onclick="window.vsApp.saveNewRec()" class="px-3.5 py-1.5 rounded-lg bg-white hover:bg-neutral-200 text-black text-xs font-semibold transition">Create Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: CONFIRM GLOBAL PUBLISH (Requirement 15) -->
+  <!-- ========================================== -->
+  <div id="publish-confirm-modal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+    <div class="bg-[#111111] border border-white/[0.08] max-w-md w-full p-6 rounded-xl space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+        <div class="flex items-center space-x-2 text-white">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-white"></i>
+          <h3 class="text-sm font-semibold text-[#F5F5F5]">Confirm Global Publish</h3>
+        </div>
+        <button onclick="window.vsApp.closePublishConfirmModal()" class="text-[#A3A3A3] hover:text-[#F5F5F5] text-base font-bold">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs text-[#A3A3A3] leading-relaxed">
+        <p>
+          You are about to publish the verified advertising dataset (<strong class="text-white">data/reports.json</strong>) to the public GitHub repository (<code class="text-white bg-[#171717] px-1 py-0.5 rounded">canit-sol/VS-ads</code>).
+        </p>
+        <div class="bg-[#171717] p-3.5 rounded-lg border border-white/[0.08] space-y-1.5">
+          <div class="text-[11px] font-semibold text-[#F5F5F5] uppercase tracking-wider">Client Data Notice</div>
+          <p class="text-[11px] text-[#A3A3A3] leading-relaxed">
+            This dataset contains campaign spend, clicks, leads, and conversion metrics for VS Hospitals departments. Once committed and pushed to <code class="text-[#F5F5F5]">main</code>, it will be publicly accessible to anyone visiting the live site.
+          </p>
+        </div>
+        <p class="text-[11px] text-[#737373]">
+          Zero personal access tokens or credentials are used in the browser. The publish command executes securely via your local authenticated Git development environment.
+        </p>
+      </div>
+      <div class="flex items-center justify-end space-x-3 pt-3 border-t border-white/[0.08]">
+        <button onclick="window.vsApp.closePublishConfirmModal()" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-[#A3A3A3] hover:text-white hover:bg-[#171717] transition">
+          Cancel
+        </button>
+        <button id="btn-confirm-publish" onclick="window.vsApp.executePublish()" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-[#E5E5E5] text-black transition flex items-center space-x-2">
+          <span id="publish-btn-text">Confirm & Publish</span>
+          <div id="publish-spinner" class="hidden w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+        </button>
       </div>
     </div>
   </div>

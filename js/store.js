@@ -148,6 +148,96 @@ class AdsStore {
     }
   }
 
+  get isLocalServer() {
+    if (typeof window === 'undefined' || !window.location) return false;
+    const hostname = window.location.hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+  }
+
+  /**
+   * Automatically load master reports.json published dataset
+   * Single global source of truth for public GitHub Pages visitors & local users
+   */
+  async loadMasterDataset() {
+    try {
+      const url = './data/reports.json?v=' + Date.now();
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      const reports = Array.isArray(data.reports) ? data.reports : (Array.isArray(data) ? data : []);
+      if (reports.length > 0) {
+        this.reports = reports;
+        this.saveReports(); // cache in localStorage for offline resiliency
+        this.masterPublishedAt = data.publishedAt || null;
+
+        // Synchronize upload history from master dataset
+        this.uploadHistory = this.reports.map(r => ({
+          id: 'hist_' + r.reportId,
+          fileName: r.sourceFileName || 'KPIs_KPIs.csv',
+          uploadedAt: r.uploadedAt || new Date().toISOString(),
+          periodLabel: r.period ? r.period.periodLabel : r.periodName,
+          rowCount: r.campaigns ? r.campaigns.length : 0,
+          campaignCount: r.campaigns ? r.campaigns.length : 0,
+          status: r.status || 'Ready',
+          reportId: r.reportId
+        }));
+        this.saveUploadHistory();
+
+        if (!this.activeReportId || !this.reports.some(r => r.reportId === this.activeReportId)) {
+          this.activeReportId = this.reports[0].reportId;
+          safeStorage.setItem(STORAGE_KEYS.ACTIVE_REPORT, this.activeReportId);
+        }
+        if (!this.comparisonReportId || !this.reports.some(r => r.reportId === this.comparisonReportId)) {
+          this.comparisonReportId = this.reports[1] ? this.reports[1].reportId : null;
+          if (this.comparisonReportId) {
+            safeStorage.setItem(STORAGE_KEYS.COMP_REPORT, this.comparisonReportId);
+          }
+        }
+
+        this.notify('MASTER_DATA_LOADED', { reports: this.reports, publishedAt: this.masterPublishedAt });
+        return true;
+      }
+    } catch (err) {
+      console.warn('Master dataset could not be fetched, falling back to local storage cache:', err.message);
+    }
+    return false;
+  }
+
+  async syncToLocalServer() {
+    if (!this.isLocalServer) return { success: false, error: 'Not on local server' };
+    try {
+      const res = await fetch('/api/save-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reports: this.reports })
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('Local server sync error:', e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  async publishMasterToGitHub() {
+    if (!this.isLocalServer) {
+      throw new Error('Global publishing is restricted to the local authenticated development server.');
+    }
+    // Ensure latest local store state is written to data/reports.json
+    await this.syncToLocalServer();
+
+    const res = await fetch('/api/publish-github', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to publish to GitHub');
+    }
+    return data;
+  }
+
   saveReports() {
     safeStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(this.reports));
   }
@@ -467,6 +557,7 @@ class AdsStore {
     });
 
     this.saveReports();
+    if (this.isLocalServer) this.syncToLocalServer();
     this.setActiveReport(newReport.reportId);
     this.notify('REPORT_ADDED', newReport);
 
@@ -486,6 +577,7 @@ class AdsStore {
       newReport.reportId = existingReportId;
       this.reports[idx] = newReport;
       this.saveReports();
+      if (this.isLocalServer) this.syncToLocalServer();
       this.setActiveReport(existingReportId);
       this.notify('REPORT_REPLACED', newReport);
       return true;
@@ -498,6 +590,7 @@ class AdsStore {
     this.uploadHistory = this.uploadHistory.filter(h => h.reportId !== reportId);
     this.saveReports();
     this.saveUploadHistory();
+    if (this.isLocalServer) this.syncToLocalServer();
 
     if (this.activeReportId === reportId) {
       this.setActiveReport(this.reports[0] ? this.reports[0].reportId : null);

@@ -83,7 +83,7 @@ class AppController {
     }
   }
 
-  init() {
+  async init() {
     ChartManager.initGlobalDefaults();
 
     this.stagedFiles = [];
@@ -93,6 +93,9 @@ class AppController {
     store.subscribe((changeType, payload) => {
       this.handleStoreChange(changeType, payload);
     });
+
+    // Automatically load master dataset from data/reports.json (Single Global Source of Truth)
+    await store.loadMasterDataset();
 
     // Initial DOM renders & event binding
     this.bindGlobalEvents();
@@ -298,6 +301,25 @@ class AppController {
         btn.className = 'px-2.5 py-1 rounded-md font-medium transition text-[#A3A3A3] hover:text-[#F5F5F5] text-[11px]';
       }
     });
+
+    // 2. Sync environment status badge
+    const envBadge = document.getElementById('hdr-environment-badge');
+    if (envBadge) {
+      envBadge.classList.remove('hidden');
+      if (store.isLocalServer) {
+        envBadge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-[11px] border border-white/[0.12] bg-[#171717] text-white';
+        envBadge.innerHTML = `
+          <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+          <span class="font-medium">Local Admin</span>
+        `;
+      } else {
+        envBadge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-[11px] border border-white/[0.08] bg-[#111111] text-[#A3A3A3]';
+        envBadge.innerHTML = `
+          <span class="w-1.5 h-1.5 rounded-full bg-white/70"></span>
+          <span class="font-medium text-[#F5F5F5]">Live Global View</span>
+        `;
+      }
+    }
 
     const report = store.getActiveReportScoped();
     const spentEl = document.getElementById('hdr-budget-spent');
@@ -1287,6 +1309,41 @@ class AppController {
   // MODULE 6: DATA & WEEKLY UPLOADS (PHASE 2)
   // ==========================================
   renderDataUploadsView() {
+    const isLocal = store.isLocalServer;
+    const publicNotice = document.getElementById('public-visitor-notice');
+    const stage1Header = document.getElementById('admin-stage-1-header');
+    const publishPanel = document.getElementById('global-publish-panel');
+    const publishStatusText = document.getElementById('global-publish-status-text');
+
+    if (publicNotice) {
+      if (isLocal) publicNotice.classList.add('hidden');
+      else publicNotice.classList.remove('hidden');
+    }
+
+    if (stage1Header) {
+      if (isLocal) stage1Header.classList.remove('hidden');
+      else stage1Header.classList.add('hidden');
+    }
+
+    const dropzone = document.getElementById('csv-dropzone');
+    if (dropzone) {
+      if (isLocal) dropzone.classList.remove('hidden');
+      else dropzone.classList.add('hidden');
+    }
+
+    if (publishPanel) {
+      if (isLocal) {
+        publishPanel.classList.remove('hidden');
+        if (publishStatusText) {
+          const count = store.getAllReports().length;
+          const lastPublished = store.masterPublishedAt ? new Date(store.masterPublishedAt).toLocaleString() : 'Not published yet';
+          publishStatusText.textContent = `${count} verified reporting periods staged in data/reports.json. Last published: ${lastPublished}`;
+        }
+      } else {
+        publishPanel.classList.add('hidden');
+      }
+    }
+
     // Empty state guidance banner
     const emptyGuidance = document.getElementById('uploads-empty-guidance');
     if (emptyGuidance) {
@@ -1298,7 +1355,6 @@ class AppController {
       }
     }
 
-    const dropzone = document.getElementById('csv-dropzone');
     const fileInput = document.getElementById('csv-file-input');
     const chooseBtn = document.getElementById('btn-choose-csv');
 
@@ -1799,6 +1855,69 @@ class AppController {
 
   downloadTemplate() {
     CsvEngine.downloadSampleCsv();
+  }
+
+  openPublishConfirmModal() {
+    const modal = document.getElementById('publish-confirm-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  closePublishConfirmModal() {
+    const modal = document.getElementById('publish-confirm-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+
+  async executePublish() {
+    const btn = document.getElementById('btn-confirm-publish');
+    const btnText = document.getElementById('publish-btn-text');
+    const spinner = document.getElementById('publish-spinner');
+    const feedbackAlert = document.getElementById('publish-feedback-alert');
+
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.textContent = 'Publishing...';
+    if (spinner) spinner.classList.remove('hidden');
+
+    try {
+      const result = await store.publishMasterToGitHub();
+      this.closePublishConfirmModal();
+
+      if (feedbackAlert) {
+        feedbackAlert.classList.remove('hidden');
+        feedbackAlert.className = 'p-3.5 rounded-lg border border-white/20 bg-[#171717] text-xs text-[#F5F5F5] flex items-center space-x-2';
+        feedbackAlert.innerHTML = `
+          <i data-lucide="check-circle" class="w-4 h-4 text-white flex-shrink-0"></i>
+          <span>${result.message || 'Published to GitHub. The live site may take a short time to update.'}</span>
+        `;
+        this.refreshIcons();
+      }
+
+      // Update status text
+      const publishStatusText = document.getElementById('global-publish-status-text');
+      if (publishStatusText) {
+        const count = store.getAllReports().length;
+        publishStatusText.textContent = `${count} verified reporting periods published to data/reports.json. Last published: ${new Date().toLocaleString()}`;
+      }
+    } catch (err) {
+      if (feedbackAlert) {
+        feedbackAlert.classList.remove('hidden');
+        feedbackAlert.className = 'p-3.5 rounded-lg border border-white/30 bg-[#171717] text-xs text-white flex items-center space-x-2';
+        feedbackAlert.innerHTML = `
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-white flex-shrink-0"></i>
+          <span>Publish Failed: ${err.message}</span>
+        `;
+        this.refreshIcons();
+      }
+    } finally {
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.textContent = 'Confirm & Publish';
+      if (spinner) spinner.classList.add('hidden');
+    }
   }
 }
 
