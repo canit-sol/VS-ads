@@ -42,10 +42,68 @@ export const CONFIG = {
   LOAD_SAMPLE_DATA_BY_DEFAULT: false
 };
 
+/**
+ * MODULAR DATA PROVIDER CONTRACT (Future-Proof for Supabase)
+ * 
+ * Provides a clean abstraction boundary between the data persistence backend
+ * and the dashboard application layers.
+ * 
+ * To migrate from GitHub reports.json to Supabase in a future phase:
+ * 1. Implement SupabaseProvider { fetchReports(), saveReports(), publishReports() }
+ * 2. Pass new SupabaseProvider(client) to AdsStore
+ * 3. ZERO changes required to UI, Charts, Platform Filtering, or Metric Calculations.
+ */
+export class ReportsJsonProvider {
+  constructor(options = {}) {
+    this.endpoint = options.endpoint || './data/reports.json';
+  }
+
+  async fetchReports() {
+    const url = `${this.endpoint}?v=${Date.now()}`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const reports = Array.isArray(data.reports) ? data.reports : (Array.isArray(data) ? data : []);
+    return {
+      reports,
+      publishedAt: data.publishedAt || null,
+      version: data.version || '1.0.0'
+    };
+  }
+
+  async saveReports(reports) {
+    const res = await fetch('/api/save-reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reports })
+    });
+    return await res.json();
+  }
+
+  async publishReports() {
+    const res = await fetch('/api/publish-github', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to publish dataset to GitHub');
+    }
+    return data;
+  }
+}
+
 class AdsStore {
-  constructor() {
+  constructor(dataProvider = new ReportsJsonProvider()) {
+    this.provider = dataProvider;
     this.subscribers = new Set();
     this.init();
+  }
+
+  setProvider(provider) {
+    this.provider = provider;
   }
 
   init() {
@@ -155,17 +213,12 @@ class AdsStore {
   }
 
   /**
-   * Automatically load master reports.json published dataset
+   * Automatically load master published dataset via the active data provider
    * Single global source of truth for public GitHub Pages visitors & local users
    */
   async loadMasterDataset() {
     try {
-      const url = './data/reports.json?v=' + Date.now();
-      const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-      const data = await res.json();
+      const data = await this.provider.fetchReports();
       const reports = Array.isArray(data.reports) ? data.reports : (Array.isArray(data) ? data : []);
       if (reports.length > 0) {
         this.reports = reports;
@@ -200,7 +253,7 @@ class AdsStore {
         return true;
       }
     } catch (err) {
-      console.warn('Master dataset could not be fetched, falling back to local storage cache:', err.message);
+      console.warn('Master dataset could not be fetched via provider, falling back to local storage cache:', err.message);
     }
     return false;
   }
@@ -208,12 +261,7 @@ class AdsStore {
   async syncToLocalServer() {
     if (!this.isLocalServer) return { success: false, error: 'Not on local server' };
     try {
-      const res = await fetch('/api/save-reports', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reports: this.reports })
-      });
-      return await res.json();
+      return await this.provider.saveReports(this.reports);
     } catch (e) {
       console.warn('Local server sync error:', e);
       return { success: false, error: e.message };
@@ -226,16 +274,7 @@ class AdsStore {
     }
     // Ensure latest local store state is written to data/reports.json
     await this.syncToLocalServer();
-
-    const res = await fetch('/api/publish-github', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Failed to publish to GitHub');
-    }
-    return data;
+    return await this.provider.publishReports(this.reports);
   }
 
   saveReports() {
