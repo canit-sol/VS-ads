@@ -123,6 +123,67 @@ class AppController {
     }
   }
 
+  openMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (sidebar) {
+      sidebar.classList.remove('-translate-x-full');
+      sidebar.classList.add('translate-x-0');
+    }
+    if (backdrop) {
+      backdrop.classList.remove('hidden');
+    }
+    this.closeMobileRail();
+    this.refreshIcons();
+  }
+
+  closeMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (sidebar) {
+      sidebar.classList.add('-translate-x-full');
+      sidebar.classList.remove('translate-x-0');
+    }
+    if (backdrop) {
+      backdrop.classList.add('hidden');
+    }
+  }
+
+  openMobileRail() {
+    const rail = document.getElementById('context-rail');
+    const backdrop = document.getElementById('rail-backdrop');
+    if (rail) {
+      rail.classList.remove('translate-x-full', 'hidden');
+      rail.classList.add('translate-x-0');
+    }
+    if (backdrop) {
+      backdrop.classList.remove('hidden');
+    }
+    this.closeMobileSidebar();
+    this.refreshIcons();
+  }
+
+  closeMobileRail() {
+    const rail = document.getElementById('context-rail');
+    const backdrop = document.getElementById('rail-backdrop');
+    if (rail) {
+      rail.classList.add('translate-x-full');
+      rail.classList.remove('translate-x-0');
+    }
+    if (backdrop) {
+      backdrop.classList.add('hidden');
+    }
+  }
+
+  toggleMobileRail() {
+    const rail = document.getElementById('context-rail');
+    if (rail && rail.classList.contains('translate-x-0')) {
+      this.closeMobileRail();
+    } else {
+      this.openMobileRail();
+    }
+  }
+
   bindGlobalEvents() {
     // Navigation items: clicking updates the hash, which triggers route change
     document.querySelectorAll('[data-nav-view]').forEach(el => {
@@ -134,6 +195,50 @@ class AppController {
       });
     });
 
+    // Mobile hamburger menu & sidebar drawer
+    const mobileMenuBtn = document.getElementById('btn-mobile-menu');
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', () => {
+        this.openMobileSidebar();
+      });
+    }
+
+    const closeSidebarBtn = document.getElementById('btn-close-sidebar');
+    if (closeSidebarBtn) {
+      closeSidebarBtn.addEventListener('click', () => {
+        this.closeMobileSidebar();
+      });
+    }
+
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    if (sidebarBackdrop) {
+      sidebarBackdrop.addEventListener('click', () => {
+        this.closeMobileSidebar();
+      });
+    }
+
+    // Mobile rail drawer close & backdrop
+    const closeRailBtn = document.getElementById('btn-close-rail');
+    if (closeRailBtn) {
+      closeRailBtn.addEventListener('click', () => {
+        this.closeMobileRail();
+      });
+    }
+
+    const closeRailEmptyBtn = document.getElementById('btn-close-rail-empty');
+    if (closeRailEmptyBtn) {
+      closeRailEmptyBtn.addEventListener('click', () => {
+        this.closeMobileRail();
+      });
+    }
+
+    const railBackdrop = document.getElementById('rail-backdrop');
+    if (railBackdrop) {
+      railBackdrop.addEventListener('click', () => {
+        this.closeMobileRail();
+      });
+    }
+
     // Handle hash change events (URL hash changes -> route state updates -> correct page renders)
     window.addEventListener('hashchange', () => {
       this.handleRouteChange();
@@ -144,10 +249,17 @@ class AppController {
       this.handleRouteChange();
     });
 
-    // Period selector in top bar
+    // Period selector in desktop and mobile top bar
     const periodSelect = document.getElementById('top-period-select');
     if (periodSelect) {
       periodSelect.addEventListener('change', e => {
+        store.setActiveReport(e.target.value);
+      });
+    }
+
+    const mobilePeriodSelect = document.getElementById('mobile-period-select');
+    if (mobilePeriodSelect) {
+      mobilePeriodSelect.addEventListener('change', e => {
         store.setActiveReport(e.target.value);
       });
     }
@@ -164,7 +276,11 @@ class AppController {
     const railToggleBtn = document.getElementById('btn-toggle-rail');
     if (railToggleBtn) {
       railToggleBtn.addEventListener('click', () => {
-        store.toggleContextRail();
+        if (window.innerWidth < 768) {
+          this.toggleMobileRail();
+        } else {
+          store.toggleContextRail();
+        }
       });
     }
 
@@ -175,9 +291,21 @@ class AppController {
         window.print();
       });
     }
+
+    // Close drawers on window resize to desktop
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 768) {
+        this.closeMobileSidebar();
+        this.closeMobileRail();
+        this.renderContextRail();
+      }
+    });
   }
 
   switchView(viewName, updateUrl = true) {
+    this.closeMobileSidebar();
+    this.closeMobileRail();
+
     const resolvedView = this.resolveViewFromRoute(viewName) || (this.isValidView(viewName) ? viewName : 'overview');
     store.activeView = resolvedView;
     this.hasRenderedInitialView = true;
@@ -187,7 +315,6 @@ class AppController {
       const primaryHash = '#' + this.getPrimaryHashForView(resolvedView);
       if (window.location.hash !== primaryHash) {
         window.location.hash = primaryHash;
-        // Setting window.location.hash triggers 'hashchange' in the browser
       }
     }
     
@@ -243,12 +370,14 @@ class AppController {
   }
 
   populateReportDropdowns() {
-    const select = document.getElementById('top-period-select');
-    if (!select) return;
+    const topSelect = document.getElementById('top-period-select');
+    const mobileSelect = document.getElementById('mobile-period-select');
+    const selects = [topSelect, mobileSelect].filter(Boolean);
+    if (selects.length === 0) return;
 
     const allReports = store.getAllReports();
     if (!allReports || allReports.length === 0) {
-      select.innerHTML = '<option value="" disabled selected>No Reports Loaded</option>';
+      selects.forEach(s => s.innerHTML = '<option value="" disabled selected>No Reports Loaded</option>');
       return;
     }
 
@@ -287,39 +416,44 @@ class AppController {
       `).join('');
     }
 
-    select.innerHTML = html;
+    selects.forEach(s => s.innerHTML = html);
   }
 
   renderHeaderControls() {
-    // 1. Sync platform tab styling
+    // 1. Sync platform tab styling (desktop and mobile)
     const currentPlatform = store.platformFilter || 'all';
     document.querySelectorAll('[data-platform-tab]').forEach(btn => {
       const tab = btn.getAttribute('data-platform-tab');
+      const isMobileTab = btn.closest('#mobile-platform-filter') !== null;
       if (tab === currentPlatform) {
-        btn.className = 'px-2.5 py-1 rounded-md font-medium transition bg-white text-black text-[11px]';
+        btn.className = isMobileTab
+          ? 'flex-1 py-1 text-center rounded-md font-medium transition bg-white text-black text-[11px]'
+          : 'px-2.5 py-1 rounded-md font-medium transition bg-white text-black text-[11px]';
       } else {
-        btn.className = 'px-2.5 py-1 rounded-md font-medium transition text-[#A3A3A3] hover:text-[#F5F5F5] text-[11px]';
+        btn.className = isMobileTab
+          ? 'flex-1 py-1 text-center rounded-md font-medium transition text-[#A3A3A3] hover:text-[#F5F5F5] text-[11px]'
+          : 'px-2.5 py-1 rounded-md font-medium transition text-[#A3A3A3] hover:text-[#F5F5F5] text-[11px]';
       }
     });
 
-    // 2. Sync environment status badge
-    const envBadge = document.getElementById('hdr-environment-badge');
-    if (envBadge) {
+    // 2. Sync environment status badge (desktop and mobile)
+    const envBadges = [document.getElementById('hdr-environment-badge'), document.getElementById('mobile-environment-badge')].filter(Boolean);
+    envBadges.forEach(envBadge => {
       envBadge.classList.remove('hidden');
       if (store.isLocalServer) {
-        envBadge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-[11px] border border-white/[0.12] bg-[#171717] text-white';
+        envBadge.className = 'flex items-center space-x-1.5 px-2 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] border border-white/[0.12] bg-[#171717] text-white';
         envBadge.innerHTML = `
           <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
           <span class="font-medium">Local Admin</span>
         `;
       } else {
-        envBadge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-[11px] border border-white/[0.08] bg-[#111111] text-[#A3A3A3]';
+        envBadge.className = 'flex items-center space-x-1.5 px-2 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] border border-white/[0.08] bg-[#111111] text-[#A3A3A3]';
         envBadge.innerHTML = `
           <span class="w-1.5 h-1.5 rounded-full bg-white/70"></span>
           <span class="font-medium text-[#F5F5F5]">Live Global View</span>
         `;
       }
-    }
+    });
 
     const report = store.getActiveReportScoped();
     const spentEl = document.getElementById('hdr-budget-spent');
@@ -343,11 +477,16 @@ class AppController {
     const rail = document.getElementById('context-rail');
     if (!rail) return;
 
-    if (!store.isContextRailOpen) {
-      rail.classList.add('hidden');
-      return;
+    if (window.innerWidth >= 768) {
+      if (!store.isContextRailOpen) {
+        rail.classList.add('hidden');
+        return;
+      }
+      rail.classList.remove('hidden');
+    } else {
+      // On mobile, off-canvas drawer is toggled via translate classes
+      rail.classList.remove('hidden');
     }
-    rail.classList.remove('hidden');
 
     const emptyState = document.getElementById('rail-empty-state');
     const railContent = document.getElementById('rail-content');
@@ -562,21 +701,21 @@ class AppController {
     const kpiContainer = document.getElementById('overview-kpi-grid');
     if (kpiContainer) {
       kpiContainer.innerHTML = kpiData.map((k, idx) => `
-        <div class="p-5 flex flex-col justify-between ${idx % 2 !== 0 ? 'border-l border-white/[0.08] sm:border-l-0' : ''} ${idx >= 4 ? 'border-t border-white/[0.08]' : ''} ${idx % 4 !== 0 ? 'lg:border-l lg:border-white/[0.08]' : 'lg:border-l-0'}">
+        <div class="p-3.5 sm:p-5 flex flex-col justify-between ${idx % 2 !== 0 ? 'border-l border-white/[0.08]' : ''} ${idx >= 2 ? 'border-t border-white/[0.08]' : ''} ${idx >= 4 ? 'lg:border-t' : 'lg:border-t-0'} ${idx % 4 !== 0 ? 'lg:border-l lg:border-white/[0.08]' : 'lg:border-l-0'}">
           <div>
             <div class="flex items-center justify-between">
               <span class="text-xs text-[#A3A3A3] font-medium">${k.label}</span>
               ${k.delta ? `
-                <span class="text-[11px] font-medium text-[#A3A3A3]">
+                <span class="text-[10px] sm:text-[11px] font-medium text-[#A3A3A3]">
                   ${k.delta}
                 </span>
               ` : ''}
             </div>
-            <div class="mt-2 text-2xl font-semibold text-white tracking-tight">
+            <div class="mt-1.5 sm:mt-2 text-xl sm:text-2xl font-semibold text-white tracking-tight break-words">
               ${k.val}
             </div>
           </div>
-          <p class="text-[11px] text-[#737373] mt-2 font-normal">${k.sub}</p>
+          <p class="text-[10px] sm:text-[11px] text-[#737373] mt-1.5 sm:mt-2 font-normal">${k.sub}</p>
         </div>
       `).join('');
     }
@@ -862,36 +1001,36 @@ class AppController {
 
         return `
         <tr class="hover:bg-[#171717] transition border-b border-white/[0.06]">
-          <td class="py-3 px-4 text-xs text-[#737373] font-medium">#${c.rank}</td>
-          <td class="py-3 px-4">
+          <td class="py-3 px-4 text-xs text-[#737373] font-medium whitespace-nowrap">#${c.rank}</td>
+          <td class="py-3 px-4 min-w-[180px]">
             <div class="font-medium text-xs text-[#F5F5F5]">${c.name}</div>
             <div class="text-[11px] text-[#A3A3A3]">${c.specialty}</div>
           </td>
-          <td class="py-3 px-4">
+          <td class="py-3 px-4 whitespace-nowrap">
             <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-[#171717] ${platColorClass} border border-white/[0.08]">
               ${platDisplay}
             </span>
           </td>
-          <td class="py-3 px-4">
+          <td class="py-3 px-4 whitespace-nowrap">
             <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-[#171717] text-[#A3A3A3] border border-white/[0.08]">
               ${c.channel}
             </span>
           </td>
-          <td class="py-3 px-4 text-right text-xs text-[#F5F5F5] font-medium">${formatINR(c.spend)}</td>
-          <td class="py-3 px-4 text-right text-xs text-[#A3A3A3]">${formatNumber(c.clicks)}</td>
-          <td class="py-3 px-4 text-right text-xs ${c.cpc > 50 ? 'text-white font-medium' : 'text-[#A3A3A3]'}">${formatINR(c.cpc)}</td>
-          <td class="py-3 px-4 text-right text-xs text-[#A3A3A3]">${c.ctr}%</td>
-          <td class="py-3 px-4 text-right text-xs text-[#A3A3A3]">${formatNumber(c.leads || 0)}</td>
-          <td class="py-3 px-4 text-right text-xs font-semibold ${c.conversions > 0 ? 'text-white' : 'text-[#737373]'}">
+          <td class="py-3 px-4 text-right text-xs text-[#F5F5F5] font-medium whitespace-nowrap">${formatINR(c.spend)}</td>
+          <td class="py-3 px-4 text-right text-xs text-[#A3A3A3] whitespace-nowrap">${formatNumber(c.clicks)}</td>
+          <td class="py-3 px-4 text-right text-xs ${c.cpc > 50 ? 'text-white font-medium' : 'text-[#A3A3A3]'} whitespace-nowrap">${formatINR(c.cpc)}</td>
+          <td class="py-3 px-4 text-right text-xs text-[#A3A3A3] whitespace-nowrap">${c.ctr}%</td>
+          <td class="py-3 px-4 text-right text-xs text-[#A3A3A3] whitespace-nowrap">${formatNumber(c.leads || 0)}</td>
+          <td class="py-3 px-4 text-right text-xs font-semibold ${c.conversions > 0 ? 'text-white' : 'text-[#737373]'} whitespace-nowrap">
             ${c.conversions}
           </td>
-          <td class="py-3 px-4 text-right text-xs text-[#A3A3A3]">${c.phoneCalls}</td>
-          <td class="py-3 px-4 text-right text-xs font-medium ${
+          <td class="py-3 px-4 text-right text-xs text-[#A3A3A3] whitespace-nowrap">${c.phoneCalls}</td>
+          <td class="py-3 px-4 text-right text-xs font-medium whitespace-nowrap ${
             c.cpa === null ? 'text-[#737373]' : (c.cpa <= 5000 ? 'text-white' : 'text-[#A3A3A3]')
           }">
             ${c.cpa === null ? 'None (0 conv)' : formatINR(c.cpa)}
           </td>
-          <td class="py-3 px-4">
+          <td class="py-3 px-4 whitespace-nowrap">
             ${c.classification === 'strong' ? `
               <span class="inline-flex items-center space-x-1.5 text-[11px] font-medium text-white">
                 <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
