@@ -274,11 +274,11 @@ export class ChartManager {
     const labels = sorted.map(c => c.name);
     const cpaValues = sorted.map(c => (c.cpa === null ? 60000 : c.cpa));
 
-    // Monochromatic scale: White for efficient (<5k), Medium grey for moderate (5k-20k), Darker grey for excessive/null
+    // Semantic color scale: Emerald for efficient (<5k), Amber for moderate (5k-20k), Crimson for excessive/null
     const barColors = sorted.map(c => {
-      if (c.cpa === null || c.cpa > 20000) return '#525252'; // Darker grey
-      if (c.cpa > 5000) return '#A3A3A3'; // Medium grey
-      return '#FFFFFF'; // Pure white
+      if (c.cpa === null || c.cpa > 20000) return '#EF4444'; // Vivid Crimson
+      if (c.cpa > 5000) return '#F59E0B'; // Warm Amber
+      return '#10B981'; // Emerald Green
     });
 
     const ctx = canvas.getContext('2d');
@@ -387,23 +387,26 @@ export class ChartManager {
     }
 
     // CPA Horizontal Bar Chart
+    // CPA Horizontal Bar Chart
     const cpaChart = this.instances['chart-campaigns-cpa'];
     if (cpaChart) {
       if (cpaChart.data?.datasets?.[0]) {
         const values = cpaChart.data.datasets[0].data || [];
         cpaChart.data.datasets[0].backgroundColor = values.map(val => {
-          if (val === null || val > 20000) return '#BE123C'; // Deep red/crimson for drag/inefficient
-          if (val > 5000) return '#B45309'; // Deep amber for moderate
-          return '#047857'; // Deep emerald green for highly efficient
+          if (val === null || val > 20000) return '#DC2626'; // Vivid Crimson Red
+          if (val > 5000) return '#D97706'; // Warm Amber
+          return '#059669'; // Emerald Green
         });
       }
       if (cpaChart.options?.scales) {
         if (cpaChart.options.scales.x) {
-          cpaChart.options.scales.x.grid.color = '#E2E8F0';
-          cpaChart.options.scales.x.ticks.color = '#0F172A';
+          cpaChart.options.scales.x.grid.color = '#CBD5E1';
+          cpaChart.options.scales.x.ticks.color = '#09090B';
+          cpaChart.options.scales.x.ticks.font = { weight: 'bold', size: 10 };
         }
         if (cpaChart.options.scales.y) {
-          cpaChart.options.scales.y.ticks.color = '#0F172A';
+          cpaChart.options.scales.y.ticks.color = '#09090B';
+          cpaChart.options.scales.y.ticks.font = { weight: 'bold', size: 11 };
         }
       }
       cpaChart.update('none');
