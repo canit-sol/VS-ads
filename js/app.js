@@ -1331,14 +1331,25 @@ class AppController {
     const winnerCpaEl = document.getElementById('rail-winner-cpa');
     if (winnerNameEl && analysis.primaryWinner) {
       winnerNameEl.textContent = analysis.primaryWinner.name;
-      if (winnerCpaEl) winnerCpaEl.textContent = `CPA: ${formatINR(analysis.primaryWinner.cpa)}`;
+      const wLeads = analysis.primaryWinner.leads != null ? analysis.primaryWinner.leads : (analysis.primaryWinner.sourceResults || 0);
+      const wCalls = analysis.primaryWinner.phoneCalls != null ? analysis.primaryWinner.phoneCalls : (analysis.primaryWinner.calls != null ? analysis.primaryWinner.calls : 0);
+      if (winnerCpaEl) {
+        if (wLeads > 0 || wCalls > 0) {
+          winnerCpaEl.textContent = `${wLeads} Leads · ${wCalls} Calls`;
+        } else {
+          winnerCpaEl.textContent = analysis.primaryWinner.cpa ? `CPA: ${formatINR(analysis.primaryWinner.cpa)}` : 'Top Inquiries';
+        }
+      }
     }
 
     const attentionNameEl = document.getElementById('rail-attention-name');
     const attentionIssueEl = document.getElementById('rail-attention-issue');
     if (attentionNameEl && analysis.primaryAttention) {
       attentionNameEl.textContent = analysis.primaryAttention.name;
-      if (attentionIssueEl) attentionIssueEl.textContent = analysis.primaryAttention.mainIssue || `CPA: ${formatINR(analysis.primaryAttention.cpa || 56131)}`;
+      if (attentionIssueEl) {
+        const attSpend = analysis.primaryAttention.spend ? formatINR(analysis.primaryAttention.spend) : null;
+        attentionIssueEl.textContent = analysis.primaryAttention.mainIssue || (attSpend ? `Spent: ${attSpend} · 0 Conv` : 'Needs Review');
+      }
     }
 
     // Mini alert in rail
@@ -1635,10 +1646,17 @@ class AppController {
     // 4. Spotlight Pair (Editorial diagnostics)
     const campaigns = report.campaigns;
     const strongOne = campaigns.find(c => c.classification === 'strong') || campaigns[0];
-    const weakOne = campaigns.find(c => c.classification === 'weak') || campaigns[campaigns.length - 1];
+    const weakOne = campaigns.find(c => (c.classification === 'weak' || (c.spend > 5000 && (c.conversions || 0) === 0)) && (c.id ? c.id !== strongOne.id : c.name !== strongOne.name) && ((c.leads || 0) === 0 && (c.phoneCalls || 0) === 0))
+      || campaigns.find(c => c.classification === 'weak' && (c.id ? c.id !== strongOne.id : c.name !== strongOne.name))
+      || campaigns.filter(c => (c.id ? c.id !== strongOne.id : c.name !== strongOne.name)).pop()
+      || campaigns[campaigns.length - 1];
 
     const spotlightContainer = document.getElementById('overview-spotlight-container');
     if (spotlightContainer && strongOne && weakOne) {
+      const strongLeads = strongOne.leads != null ? strongOne.leads : (strongOne.sourceResults || 0);
+      const strongCalls = strongOne.phoneCalls != null ? strongOne.phoneCalls : (strongOne.calls != null ? strongOne.calls : 0);
+      const weakCalls = weakOne.phoneCalls != null ? weakOne.phoneCalls : (weakOne.calls != null ? weakOne.calls : 0);
+
       spotlightContainer.innerHTML = `
         <div class="bg-[#111111] border border-white/[0.08] p-6 rounded-xl space-y-4">
           <div class="flex items-center justify-between">
@@ -1658,12 +1676,12 @@ class AppController {
 
           <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/[0.08] text-center">
             <div>
-              <span class="text-[10px] text-[#737373] block">CPA</span>
-              <span class="text-base font-semibold text-white">${formatINR(strongOne.cpa)}</span>
+              <span class="text-[10px] text-[#737373] block">Leads</span>
+              <span class="text-base font-semibold text-white">${strongLeads.toLocaleString('en-IN')}</span>
             </div>
             <div>
-              <span class="text-[10px] text-[#737373] block">Conversions</span>
-              <span class="text-base font-semibold text-white">${strongOne.conversions}</span>
+              <span class="text-[10px] text-[#737373] block">Calls</span>
+              <span class="text-base font-semibold text-white">${strongCalls.toLocaleString('en-IN')}</span>
             </div>
             <div>
               <span class="text-[10px] text-[#737373] block">Average CPC</span>
@@ -1696,8 +1714,8 @@ class AppController {
               <span class="text-base font-semibold text-white">${formatINR(weakOne.spend)}</span>
             </div>
             <div>
-              <span class="text-[10px] text-[#737373] block">Conversions</span>
-              <span class="text-base font-semibold text-[#A3A3A3]">${weakOne.conversions}</span>
+              <span class="text-[10px] text-[#737373] block">Calls</span>
+              <span class="text-base font-semibold text-[#A3A3A3]">${weakCalls.toLocaleString('en-IN')}</span>
             </div>
             <div>
               <span class="text-[10px] text-[#737373] block">Average CPC</span>
@@ -1705,7 +1723,7 @@ class AppController {
             </div>
           </div>
 
-          <p class="text-xs text-[#A3A3A3] leading-relaxed pt-1">${weakOne.mainIssue || 'High spend volume with negligible conversions. Recommended action: pause campaign.'}</p>
+          <p class="text-xs text-[#A3A3A3] leading-relaxed pt-1">${weakOne.mainIssue || 'High spend volume with negligible calls/leads. Recommended action: pause campaign.'}</p>
         </div>
       `;
     }

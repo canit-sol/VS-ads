@@ -22,7 +22,9 @@ export class AiDiagnosticsEngine {
 
     // 2. Identify Top Performers
     const topPerformers = campaigns.filter(c => c.classification === 'strong');
-    const primaryWinner = topPerformers[0] || campaigns[0];
+    const primaryWinner = topPerformers[0]
+      || [...campaigns].sort((a, b) => ((b.leads || 0) + (b.phoneCalls || 0)) - ((a.leads || 0) + (a.phoneCalls || 0)))[0]
+      || campaigns[0];
 
     // 3. Channel Arbitrage (Search vs PMax)
     const searchAvgCpc = searchCampaigns.length > 0
@@ -115,7 +117,7 @@ export class AiDiagnosticsEngine {
       wasteRatio: Math.round((totalWastedSpend / Math.max(1, report.budgetSummary.spent)) * 100),
       projectedTargetConversions: Math.round(report.budgetSummary.remaining / 3000), // ~₹3,000 target CPA
       primaryWinner,
-      primaryAttention: wastefulCampaigns[0] || campaigns[campaigns.length - 1],
+      primaryAttention: wastefulCampaigns.find(c => (c.id ? c.id !== primaryWinner.id : c.name !== primaryWinner.name)) || campaigns.find(c => (c.id ? c.id !== primaryWinner.id : c.name !== primaryWinner.name)) || campaigns[campaigns.length - 1],
       insights,
       strategicPivot: {
         currentInefficiency: [
