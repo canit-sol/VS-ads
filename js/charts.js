@@ -327,4 +327,119 @@ export class ChartManager {
       }
     });
   }
+
+  /**
+   * Apply high-contrast executive light print theme to all active charts
+   */
+  static applyPrintTheme() {
+    if (typeof Chart === 'undefined') return;
+
+    // Velocity Chart
+    const velocityChart = this.instances['chart-velocity'];
+    if (velocityChart) {
+      if (velocityChart.data?.datasets?.[0]) {
+        velocityChart.data.datasets[0].backgroundColor = '#0F172A'; // Deep black bar
+        velocityChart.data.datasets[0].borderColor = '#000000';
+      }
+      if (velocityChart.data?.datasets?.[1]) {
+        velocityChart.data.datasets[1].borderColor = '#1D4ED8'; // Deep royal blue line
+        velocityChart.data.datasets[1].pointBackgroundColor = '#1D4ED8';
+        velocityChart.data.datasets[1].pointBorderColor = '#FFFFFF';
+      }
+      if (velocityChart.options?.scales) {
+        if (velocityChart.options.scales.x) {
+          velocityChart.options.scales.x.grid.color = '#E2E8F0';
+          velocityChart.options.scales.x.ticks.color = '#0F172A';
+        }
+        if (velocityChart.options.scales.yConversions) {
+          velocityChart.options.scales.yConversions.ticks.color = '#0F172A';
+          if (velocityChart.options.scales.yConversions.title) {
+            velocityChart.options.scales.yConversions.title.color = '#0F172A';
+          }
+        }
+        if (velocityChart.options.scales.yCpa) {
+          velocityChart.options.scales.yCpa.grid.color = '#E2E8F0';
+          velocityChart.options.scales.yCpa.ticks.color = '#0F172A';
+          if (velocityChart.options.scales.yCpa.title) {
+            velocityChart.options.scales.yCpa.title.color = '#0F172A';
+          }
+        }
+      }
+      if (velocityChart.options?.plugins?.legend?.labels) {
+        velocityChart.options.plugins.legend.labels.color = '#0F172A';
+      }
+      velocityChart.update('none');
+    }
+
+    // Channel Share Doughnut
+    const shareChart = this.instances['chart-channel-share'];
+    if (shareChart) {
+      if (shareChart.data?.datasets?.[0]) {
+        const printPalette = ['#0F172A', '#1D4ED8', '#047857', '#B45309', '#6D28D9', '#475569'];
+        shareChart.data.datasets[0].backgroundColor = printPalette.slice(0, shareChart.data.datasets[0].data.length);
+        shareChart.data.datasets[0].borderColor = '#FFFFFF';
+        shareChart.data.datasets[0].borderWidth = 2;
+      }
+      if (shareChart.options?.plugins?.legend?.labels) {
+        shareChart.options.plugins.legend.labels.color = '#0F172A';
+      }
+      shareChart.update('none');
+    }
+
+    // CPA Horizontal Bar Chart
+    const cpaChart = this.instances['chart-campaigns-cpa'];
+    if (cpaChart) {
+      if (cpaChart.data?.datasets?.[0]) {
+        const values = cpaChart.data.datasets[0].data || [];
+        cpaChart.data.datasets[0].backgroundColor = values.map(val => {
+          if (val === null || val > 20000) return '#BE123C'; // Deep red/crimson for drag/inefficient
+          if (val > 5000) return '#B45309'; // Deep amber for moderate
+          return '#047857'; // Deep emerald green for highly efficient
+        });
+      }
+      if (cpaChart.options?.scales) {
+        if (cpaChart.options.scales.x) {
+          cpaChart.options.scales.x.grid.color = '#E2E8F0';
+          cpaChart.options.scales.x.ticks.color = '#0F172A';
+        }
+        if (cpaChart.options.scales.y) {
+          cpaChart.options.scales.y.ticks.color = '#0F172A';
+        }
+      }
+      cpaChart.update('none');
+    }
+  }
+
+  /**
+   * Restore default dark editorial theme
+   */
+  static restoreDarkTheme() {
+    if (typeof Chart === 'undefined') return;
+    this.initGlobalDefaults();
+
+    // Trigger re-render of current view's charts
+    const activeReport = store.getActiveReport();
+    if (activeReport) {
+      const activePlatform = store.platformFilter || 'all';
+      const allReports = store.getAllReports();
+      this.renderVelocityChart('chart-velocity', allReports, activePlatform);
+      this.renderChannelShareChart('chart-channel-share', store.getActiveReportScoped(activePlatform));
+      if (store.activeView === 'campaigns') {
+        const rep = store.getActiveReportScoped(activePlatform);
+        if (rep && rep.campaigns) {
+          this.renderCpaBarChart('chart-campaigns-cpa', rep.campaigns);
+        }
+      }
+    }
+  }
+}
+
+// Auto-bind beforeprint and afterprint to switch chart palettes seamlessly
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeprint', () => {
+    ChartManager.applyPrintTheme();
+  });
+  window.addEventListener('afterprint', () => {
+    ChartManager.restoreDarkTheme();
+  });
 }

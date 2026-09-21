@@ -1,0 +1,20 @@
+{
+  "version": "1.0.0",
+  "description": "Executive Planned Budget Targets (Decoupled from Actual Ad API Spend)",
+  "defaultMonthlyBudget": 1128000,
+  "defaultWeeklyBudget": 250000,
+  "periodTargets": {
+    "2026_M07_W01": 1128000,
+    "2026_M07_W02": 171284,
+    "2026_M07_W03": 313048,
+    "2026_M07_W04": 384183,
+    "2026_M07_W05": 321220,
+    "2026_M07_MONTH": 20000,
+    "2026_M08_W01": 1012000,
+    "2026_M08_W02": 290541,
+    "2026_M08_W03": 321384,
+    "2026_M08_W04": 214050,
+    "2026_M08_AGG28": 17000,
+    "2026_M09_W01": 254067
+  }
+}

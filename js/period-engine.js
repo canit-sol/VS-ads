@@ -9,7 +9,8 @@ export class PeriodEngine {
   static DATE_SYNONYMS = [
     'date', 'day', 'week', 'reporting period', 'reporting_period',
     'period', 'start date', 'end date', 'start_date', 'end_date',
-    'time', 'day of week', 'day_of_week'
+    'time', 'day of week', 'day_of_week', 'reporting starts', 'reporting ends',
+    'reporting start', 'reporting end', 'date range', 'range', 'day range'
   ];
 
   /**
@@ -366,14 +367,14 @@ export class PeriodEngine {
 
     // Check for "Week 1", "Week 2", "Week 3", "W1", "W2", "W3"
     const weekMatch = lower.match(/(?:week[_\s-]?|w)(\d)/i);
-    const monthMatch = lower.match(/(aug|sep|oct|nov|dec|jan|feb|mar|apr|may|jun|jul)/i);
+    const monthMatch = lower.match(/(january|february|march|april|may|june|july|august|september|sept|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)/i);
     const yearMatch = lower.match(/(20\d\d)/);
 
     const year = yearMatch ? parseInt(yearMatch[1], 10) : 2026;
     let monthIdx = 7; // Default August (index 7) for VS Hospitals baseline
 
     if (monthMatch) {
-      const mStr = monthMatch[1].toLowerCase();
+      const mStr = monthMatch[1].toLowerCase().slice(0, 3);
       const idx = MONTH_SHORT_NAMES.findIndex(m => m.toLowerCase() === mStr);
       if (idx !== -1) monthIdx = idx;
     }

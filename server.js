@@ -13,6 +13,9 @@ const DATA_DIR = path.join(__dirname, 'data');
 const REPORTS_JSON_PATH = path.join(DATA_DIR, 'reports.json');
 const GIT_BIN = fs.existsSync('C:\\Program Files\\Git\\cmd\\git.exe') ? '"C:\\Program Files\\Git\\cmd\\git.exe"' : 'git';
 
+const googleAdsService = require('./services/googleAdsService');
+const googleAdsAggregator = require('./services/googleAdsAggregator');
+
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -88,6 +91,126 @@ const server = http.createServer(async (req, res) => {
       lastPublishedAt: publishedAt,
       reportCount: reportCount
     });
+  }
+
+  // --- API ROUTE: GET /api/google-ads-status ---
+  if (req.method === 'GET' && reqPath === '/api/google-ads-status') {
+    const status = googleAdsService.getStatus();
+    let hasGoogleReports = false;
+    let lastGoogleSync = null;
+
+    if (fs.existsSync(REPORTS_JSON_PATH)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(REPORTS_JSON_PATH, 'utf8'));
+        const reports = Array.isArray(data.reports) ? data.reports : [];
+        for (const r of reports) {
+          if (r.sourceType === 'google-ads-api' || (r.campaigns && r.campaigns.some(c => c.platform === 'google'))) {
+            hasGoogleReports = true;
+            if (r.uploadedAt && (!lastGoogleSync || new Date(r.uploadedAt) > new Date(lastGoogleSync))) {
+              lastGoogleSync = r.uploadedAt;
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    return sendJson(res, 200, {
+      success: true,
+      ...status,
+      hasGoogleReports,
+      lastGoogleSync
+    });
+  }
+
+  // --- API ROUTE: POST /api/sync-google-ads ---
+  if (req.method === 'POST' && reqPath === '/api/sync-google-ads') {
+    try {
+      let payload = {};
+      try {
+        payload = await parseJsonBody(req);
+      } catch (e) {
+        payload = {};
+      }
+
+      const startDate = payload.startDate || '2026-08-24';
+      const endDate = payload.endDate || '2026-08-29';
+      const periodId = payload.periodId || '2026_M08_W04';
+      const periodLabel = payload.periodLabel || 'Week 4 · Aug 24–29, 2026';
+
+      console.log(`[GoogleAdsSync] Starting synchronization for ${startDate} to ${endDate}...`);
+      const fetchResult = await googleAdsService.fetchCampaignMetrics(startDate, endDate);
+
+      // SAFETY: If API call fails or returns empty data, NEVER overwrite existing reports
+      if (!fetchResult.success) {
+        console.error('[GoogleAdsSync] Fetch failed:', fetchResult.error);
+        return sendJson(res, 502, {
+          success: false,
+          error: `Google Ads API sync failed: ${fetchResult.error}. Existing data preserved.`
+        });
+      }
+
+      if (!fetchResult.data || fetchResult.data.length === 0) {
+        return sendJson(res, 400, {
+          success: false,
+          error: 'Google Ads API returned 0 campaign records. Existing data preserved.'
+        });
+      }
+
+      // Read current master data
+      let masterData = { version: '1.0.0', publishedAt: new Date().toISOString(), reportCount: 0, reports: [] };
+      let existingCampaigns = [];
+
+      if (fs.existsSync(REPORTS_JSON_PATH)) {
+        try {
+          masterData = JSON.parse(fs.readFileSync(REPORTS_JSON_PATH, 'utf8'));
+          const existingReport = (masterData.reports || []).find(r => r.period && r.period.periodId === periodId);
+          if (existingReport && Array.isArray(existingReport.campaigns)) {
+            existingCampaigns = existingReport.campaigns;
+          }
+        } catch (e) {
+          console.warn('[GoogleAdsSync] Failed reading existing reports.json:', e.message);
+        }
+      }
+
+      // Build normalized Report
+      const newReport = googleAdsAggregator.buildReport(startDate, endDate, fetchResult.data, {
+        periodId: periodId,
+        periodLabel: periodLabel,
+        mode: fetchResult.mode,
+        existingCampaigns: existingCampaigns
+      });
+
+      // Merge into master payload
+      const updatedMaster = googleAdsAggregator.mergeIntoMaster(masterData, newReport);
+
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+
+      // Atomic write to data/reports.json
+      fs.writeFileSync(REPORTS_JSON_PATH, JSON.stringify(updatedMaster, null, 2), 'utf8');
+      console.log(`[GoogleAdsSync] Success. Updated period ${periodId} (${newReport.campaigns.length} campaigns).`);
+
+      return sendJson(res, 200, {
+        success: true,
+        mode: fetchResult.mode,
+        reportId: newReport.reportId,
+        periodId: periodId,
+        periodLabel: periodLabel,
+        campaignCount: newReport.campaigns.length,
+        spend: newReport.metrics.spend,
+        conversions: newReport.metrics.conversions,
+        syncedAt: newReport.uploadedAt,
+        message: `Google Ads data (${fetchResult.mode.toUpperCase()}) synchronized successfully.`
+      });
+
+    } catch (err) {
+      console.error('[GoogleAdsSync] Unhandled error:', err.message);
+      return sendJson(res, 500, {
+        success: false,
+        error: `Internal synchronization failure: ${err.message}. Existing data was not modified.`
+      });
+    }
   }
 
   // --- API ROUTE: POST /api/save-reports ---

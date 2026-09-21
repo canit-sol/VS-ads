@@ -76,9 +76,218 @@
     }
 
     @media print {
-      .no-print { display: none !important; }
-      body { background: #FFFFFF !important; color: #111111 !important; }
-      .view-panel { display: block !important; }
+      @page {
+        size: A4 portrait;
+        margin: 12mm 12mm 14mm 12mm;
+      }
+
+      /* Force exact color printing */
+      *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      /* Base canvas */
+      html, body {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        color: #0F172A !important;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+        font-size: 10pt !important;
+        line-height: 1.4 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      /* Hide screen-only interactive chrome */
+      .no-print,
+      #sidebar,
+      #context-rail,
+      header,
+      #sidebar-backdrop,
+      #rail-backdrop,
+      #overview-empty-state,
+      #campaigns-empty-state,
+      #ai-insights-empty-state,
+      #overview-platform-empty,
+      #campaigns-platform-empty,
+      #view-data-uploads,
+      #view-settings,
+      #edit-rec-modal,
+      button,
+      select,
+      input,
+      .btn,
+      [role="button"] {
+        display: none !important;
+      }
+
+      /* Unconstrain scroll containers so content flows naturally across pages */
+      .flex-1, .overflow-hidden, .overflow-y-auto, .overflow-x-auto, main, .momentum-scroll {
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
+        position: static !important;
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      /* Ensure ONLY the active view panel is printed */
+      .view-panel.hidden {
+        display: none !important;
+      }
+      .view-panel:not(.hidden) {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      /* Executive Print Header & Footer */
+      .executive-print-header {
+        display: block !important;
+        margin-bottom: 16px !important;
+      }
+      .executive-print-footer {
+        display: flex !important;
+      }
+
+      /* Card containers: clean crisp white with sharp border */
+      [class*="bg-[#111111]"],
+      [class*="bg-[#090909]"],
+      [class*="bg-[#0D0D0D]"],
+      [class*="bg-[#171717]"],
+      [class*="bg-[#1D1D1D]"],
+      [class*="bg-[#0E0E0E]"] {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+        color: #0F172A !important;
+      }
+
+      /* High-contrast typography */
+      .text-white,
+      [class*="text-[#F5F5F5]"],
+      [class*="text-[#FAFAFA]"],
+      .text-neutral-100,
+      .text-zinc-100 {
+        color: #09090B !important;
+        font-weight: 600 !important;
+      }
+
+      [class*="text-[#A3A3A3]"],
+      [class*="text-[#737373]"],
+      .text-neutral-400,
+      .text-zinc-400,
+      .text-zinc-500 {
+        color: #334155 !important;
+        font-weight: 500 !important;
+      }
+
+      [class*="text-[#525252]"] {
+        color: #475569 !important;
+      }
+
+      /* Headings */
+      h1, h2, h3, h4, h5, h6 {
+        color: #09090B !important;
+        font-weight: 700 !important;
+      }
+
+      /* Borders */
+      [class*="border-white"],
+      [class*="border-white/"] {
+        border-color: #CBD5E1 !important;
+      }
+
+      /* Progress Bar in Print */
+      .w-full[class*="bg-[#1D1D1D]"] {
+        background-color: #E2E8F0 !important;
+        border: 1px solid #CBD5E1 !important;
+        height: 8px !important;
+      }
+      #ov-budget-progressbar {
+        background-color: #0F172A !important;
+      }
+
+      /* KPI & Status Badges */
+      [class*="bg-white/[0.05]"],
+      [class*="bg-white/[0.08]"],
+      [class*="bg-white/[0.04]"],
+      span[class*="bg-[#171717]"],
+      span[class*="bg-[#1D1D1D]"] {
+        background-color: #F1F5F9 !important;
+        color: #0F172A !important;
+        border: 1px solid #CBD5E1 !important;
+        font-weight: 600 !important;
+      }
+
+      /* Tables: sharp, crisp borders, legible text, alternating row tints */
+      table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 8.5pt !important;
+        page-break-inside: auto !important;
+      }
+      thead {
+        display: table-header-group !important;
+      }
+      thead th {
+        background-color: #F1F5F9 !important;
+        color: #0F172A !important;
+        border-top: 1px solid #94A3B8 !important;
+        border-bottom: 2px solid #0F172A !important;
+        padding: 6px 8px !important;
+        font-weight: 700 !important;
+        font-size: 8pt !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+      }
+      tbody tr {
+        border-bottom: 1px solid #E2E8F0 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      tbody tr:nth-child(even) {
+        background-color: #F8FAFC !important;
+      }
+      tbody td {
+        padding: 6px 8px !important;
+        color: #1E293B !important;
+        font-size: 8.5pt !important;
+      }
+
+      /* Semantic status indicators */
+      .bg-white.w-1\.5.h-1\.5, .bg-white.w-2.h-2 {
+        background-color: #059669 !important; /* Green */
+      }
+      span[class*="border-[#737373]"] {
+        border-color: #DC2626 !important; /* Red */
+      }
+
+      /* Prevent mid-card page cutoffs */
+      .space-y-6 > div,
+      .space-y-8 > div,
+      .grid > div,
+      .border,
+      tr,
+      .chart-container,
+      canvas {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      /* Chart sizing in print */
+      .h-60, .h-64, .h-72 {
+        height: 210px !important;
+        max-height: 210px !important;
+      }
     }
 
     /* Momentum scroll for mobile touch */
@@ -250,9 +459,9 @@
             </div>
 
             <div class="flex items-center space-x-2">
-              <button id="btn-print-report" class="bg-[#111111] hover:bg-[#171717] text-[#A3A3A3] hover:text-[#F5F5F5] px-2.5 sm:px-3 py-1.5 rounded-lg border border-white/[0.08] text-xs font-medium flex items-center space-x-1.5 transition" title="Print Executive Report">
-                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-                <span class="hidden sm:inline">Print</span>
+              <button id="btn-print-report" class="bg-[#171717] hover:bg-[#222222] text-[#F5F5F5] hover:text-white px-2.5 sm:px-3 py-1.5 rounded-lg border border-white/20 text-xs font-medium flex items-center space-x-1.5 transition shadow-xs" title="Download Executive Report (Save as PDF)">
+                <i data-lucide="file-down" class="w-3.5 h-3.5 text-white"></i>
+                <span class="font-semibold">Download Report</span>
               </button>
 
               <button id="btn-toggle-rail" class="bg-[#111111] hover:bg-[#171717] text-[#A3A3A3] hover:text-[#F5F5F5] p-2 rounded-lg border border-white/[0.08] transition" title="Toggle Summary Rail" aria-label="Toggle Summary Rail">
@@ -287,6 +496,49 @@
 
       <!-- VIEW PANELS CONTAINER -->
       <main class="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 max-w-6xl mx-auto w-full">
+
+        <!-- ========================================== -->
+        <!-- EXECUTIVE PRINT & PDF HEADER (Print Only)  -->
+        <!-- ========================================== -->
+        <div id="executive-print-header" class="executive-print-header hidden">
+          <div class="flex items-start justify-between border-b-2 border-[#0F172A] pb-4 mb-4">
+            <div>
+              <div class="flex items-center space-x-3">
+                <span class="text-2xl font-extrabold tracking-wider text-[#0F172A]">VS HOSPITALS</span>
+                <span class="text-xs uppercase tracking-widest text-[#475569] border-l-2 border-[#CBD5E1] pl-3 font-semibold">Advertising Intelligence Dossier</span>
+              </div>
+              <h1 class="text-lg font-bold text-[#0F172A] mt-1" id="print-doc-title">Executive Performance & Campaign Audit</h1>
+              <p class="text-xs text-[#475569] mt-0.5">Audited Multi-Channel Report · Prepared for Management Review · CANIT Solutions</p>
+            </div>
+            <div class="text-right space-y-1">
+              <div class="inline-block bg-[#0F172A] text-white text-[11px] font-bold px-3 py-1 rounded tracking-wide uppercase" id="print-badge-period">
+                Active Cycle
+              </div>
+              <div class="text-xs font-semibold text-[#1E293B]" id="print-scope-label">Scope: All Platforms (Google + Meta)</div>
+              <div class="text-[10px] text-[#64748B]" id="print-timestamp">Generated on —</div>
+            </div>
+          </div>
+
+          <!-- Print High-Level KPI Summary Ribbon -->
+          <div class="grid grid-cols-4 gap-3 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg p-3.5 mb-6" id="print-kpi-ribbon">
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">Total Spend</span>
+              <span class="text-sm font-bold text-[#0F172A]" id="print-kpi-spend">—</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">Patient Leads / Conv</span>
+              <span class="text-sm font-bold text-[#0F172A]" id="print-kpi-conversions">—</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">Blended CPA</span>
+              <span class="text-sm font-bold text-[#0F172A]" id="print-kpi-cpa">—</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">Remaining Budget</span>
+              <span class="text-sm font-bold text-[#0F172A]" id="print-kpi-remaining">—</span>
+            </div>
+          </div>
+        </div>
 
         <!-- ========================================== -->
         <!-- VIEW: OVERVIEW                             -->
@@ -870,9 +1122,41 @@
           <div id="admin-stage-1-header" class="flex items-center justify-between pt-1">
             <div class="flex items-center space-x-2">
               <span class="w-1.5 h-1.5 rounded-full bg-white/40"></span>
-              <h3 class="text-xs font-semibold text-[#F5F5F5] uppercase tracking-wider">Stage 1 · Upload & Validate</h3>
+              <h3 class="text-xs font-semibold text-[#F5F5F5] uppercase tracking-wider">Stage 1 · Ingestion & Validation</h3>
             </div>
             <span class="text-[11px] text-[#737373]">Local staging & preview</span>
+          </div>
+
+          <!-- Automated Direct API Sync Section (Phase 1: Google Ads) -->
+          <div id="api-sync-panel" class="bg-[#111111] border border-white/[0.08] p-5 rounded-xl space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="space-y-1">
+                <div class="flex items-center space-x-2">
+                  <span id="google-ads-status-dot" class="w-2 h-2 rounded-full bg-white"></span>
+                  <h3 class="text-xs font-semibold text-[#F5F5F5] uppercase tracking-wider">Direct API Synchronization</h3>
+                  <span id="google-ads-mode-badge" class="text-[10px] px-2 py-0.5 rounded bg-[#171717] border border-white/[0.1] text-[#A3A3A3] font-mono">Google Ads · Mock</span>
+                </div>
+                <p id="google-ads-sync-desc" class="text-xs text-[#A3A3A3]">
+                  Pull campaign metrics directly from Google Ads API (Search, PMax, YouTube).
+                </p>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <button id="btn-sync-google-ads" onclick="window.vsApp.syncGoogleAds()" class="bg-[#171717] hover:bg-[#1D1D1D] text-[#F5F5F5] border border-white/[0.12] hover:border-white/30 text-xs font-semibold px-3.5 py-2 rounded-lg transition inline-flex items-center space-x-2 shadow-sm flex-shrink-0 cursor-pointer">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-white"></i>
+                  <span id="btn-sync-google-ads-text">Sync Google Ads</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="google-ads-sync-alert" class="hidden p-3 rounded-lg border text-xs leading-relaxed"></div>
+          </div>
+
+          <!-- Section Divider / CSV Alternative -->
+          <div id="api-csv-divider" class="flex items-center space-x-3 py-0.5 text-[#737373] text-[11px]">
+            <div class="h-px bg-white/[0.08] flex-1"></div>
+            <span>or manual CSV spreadsheet ingestion</span>
+            <div class="h-px bg-white/[0.08] flex-1"></div>
           </div>
 
           <!-- Upload Area -->
@@ -882,14 +1166,14 @@
               <i data-lucide="upload-cloud" class="w-6 h-6"></i>
             </div>
             <div class="space-y-0.5">
-              <h3 class="text-sm font-semibold text-[#F5F5F5]">Drop CSV files here</h3>
-              <p class="text-xs text-[#737373]">or</p>
+              <h3 class="text-sm font-semibold text-[#F5F5F5]">Drop advertising CSV files here</h3>
+              <p class="text-xs text-[#737373]">Google Ads · Meta Ads Manager · VS Cross-Tab · Custom Spreadsheets</p>
             </div>
             <button id="btn-choose-csv" type="button" class="bg-white hover:bg-[#E5E5E5] text-black text-xs font-semibold px-4 py-2 rounded-lg transition inline-flex items-center space-x-2">
               <i data-lucide="folder" class="w-4 h-4"></i>
               <span>Choose CSV files</span>
             </button>
-            <p class="text-[11px] text-[#737373] pt-1">Supports multiple CSV files</p>
+            <p class="text-[11px] text-[#737373] pt-1">Accepts any weekly advertising export with automatic column mapping</p>
           </div>
 
           <!-- File Error Alert -->
@@ -950,6 +1234,14 @@
             </div>
           </div>
         </section>
+
+        <!-- ========================================== -->
+        <!-- EXECUTIVE PRINT FOOTER (Print Only)        -->
+        <!-- ========================================== -->
+        <div class="executive-print-footer hidden text-[9px] text-[#64748B] border-t border-[#CBD5E1] pt-3 mt-8 flex items-center justify-between">
+          <div class="font-medium">CONFIDENTIAL · FOR INTERNAL EXECUTIVE & STRATEGIC REVIEW ONLY · VS HOSPITALS</div>
+          <div class="text-right">CANIT Solutions Advertising Intelligence Engine · Audited Direct API & CSV Pipeline</div>
+        </div>
 
       </main>
     </div>

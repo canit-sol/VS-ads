@@ -284,11 +284,21 @@ class AppController {
       });
     }
 
-    // Print / PDF button
+    // Download Report / Print PDF button
     const printBtn = document.getElementById('btn-print-report');
     if (printBtn) {
       printBtn.addEventListener('click', () => {
+        if (store.activeView === 'data-uploads' || store.activeView === 'settings') {
+          this.switchView('overview');
+        }
+        this.preparePrintHeader();
         window.print();
+      });
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeprint', () => {
+        this.preparePrintHeader();
       });
     }
 
@@ -300,6 +310,70 @@ class AppController {
         this.renderContextRail();
       }
     });
+  }
+
+  preparePrintHeader() {
+    const rawReport = store.getActiveReport();
+    if (!rawReport) return;
+
+    const activePlatform = store.platformFilter || 'all';
+    const report = store.getActiveReportScoped(activePlatform);
+    if (!report) return;
+
+    const view = store.activeView;
+    const viewTitles = {
+      'overview': 'Executive Performance & Pacing Overview',
+      'campaigns': 'Campaign Performance & Efficiency Audit',
+      'reports': 'Historical Cycles & Progression Matrix',
+      'ai-insights': 'AI Diagnostics & 7-Day Sprint Blueprint',
+      'improve': 'Strategic Recommendations & Action Items'
+    };
+
+    const docTitleEl = document.getElementById('print-doc-title');
+    if (docTitleEl) {
+      docTitleEl.textContent = viewTitles[view] || 'Advertising Intelligence Executive Report';
+    }
+
+    const badgePeriodEl = document.getElementById('print-badge-period');
+    if (badgePeriodEl) {
+      badgePeriodEl.textContent = report.period ? report.period.periodLabel : (report.periodName || 'Active Cycle');
+    }
+
+    const scopeLabelEl = document.getElementById('print-scope-label');
+    if (scopeLabelEl) {
+      const platText = activePlatform === 'all' ? 'All Platforms (Google Ads + Meta Ads)' :
+                       activePlatform === 'google' ? 'Google Ads Network (Search, PMax, YouTube)' :
+                       'Meta Ads Network (Instagram & Facebook)';
+      scopeLabelEl.textContent = `Scope: ${platText}`;
+    }
+
+    const timestampEl = document.getElementById('print-timestamp');
+    if (timestampEl) {
+      const now = new Date();
+      timestampEl.textContent = `Generated on ${now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} at ${now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    const b = report.budgetSummary || {};
+    const m = report.metrics || {};
+
+    const spendEl = document.getElementById('print-kpi-spend');
+    if (spendEl) spendEl.textContent = formatINR(b.spent || m.spend || 0);
+
+    const convEl = document.getElementById('print-kpi-conversions');
+    if (convEl) {
+      convEl.textContent = activePlatform === 'meta' && m.sourceResults !== undefined ?
+        `${formatNumber(m.sourceResults)} results` :
+        `${m.conversions || 0} leads`;
+    }
+
+    const cpaEl = document.getElementById('print-kpi-cpa');
+    if (cpaEl) {
+      const val = activePlatform === 'meta' && m.costPerResult ? m.costPerResult : m.cpa;
+      cpaEl.textContent = val ? formatINR(val) : '—';
+    }
+
+    const remEl = document.getElementById('print-kpi-remaining');
+    if (remEl) remEl.textContent = b.remaining ? formatINR(b.remaining) : '—';
   }
 
   switchView(viewName, updateUrl = true) {
@@ -1455,19 +1529,42 @@ class AppController {
     const publishStatusText = document.getElementById('global-publish-status-text');
 
     if (publicNotice) {
-      if (isLocal) publicNotice.classList.add('hidden');
-      else publicNotice.classList.remove('hidden');
+      if (isLocal) {
+        publicNotice.classList.add('hidden');
+      } else {
+        publicNotice.classList.remove('hidden');
+        publicNotice.innerHTML = `
+          <div class="flex items-center space-x-2 text-white font-medium">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>Cloud Ingestion Active · Universal CSV & Reporting Engine</span>
+          </div>
+          <p class="text-[#A3A3A3] leading-relaxed">
+            Drop any advertising CSV report below (Google Ads, Meta Ads Manager, cross-tab, or custom). The system will automatically validate, parse all campaigns and periods, and enable live dashboard inspection and sharp executive report downloads in your browser.
+          </p>
+        `;
+      }
     }
 
     if (stage1Header) {
-      if (isLocal) stage1Header.classList.remove('hidden');
-      else stage1Header.classList.add('hidden');
+      stage1Header.classList.remove('hidden');
+    }
+
+    const apiSyncPanel = document.getElementById('api-sync-panel');
+    const apiCsvDivider = document.getElementById('api-csv-divider');
+    if (apiSyncPanel) {
+      if (isLocal) {
+        apiSyncPanel.classList.remove('hidden');
+        if (apiCsvDivider) apiCsvDivider.classList.remove('hidden');
+        this.refreshGoogleAdsStatus();
+      } else {
+        apiSyncPanel.classList.add('hidden');
+        if (apiCsvDivider) apiCsvDivider.classList.add('hidden');
+      }
     }
 
     const dropzone = document.getElementById('csv-dropzone');
     if (dropzone) {
-      if (isLocal) dropzone.classList.remove('hidden');
-      else dropzone.classList.add('hidden');
+      dropzone.classList.remove('hidden');
     }
 
     if (publishPanel) {
@@ -1766,11 +1863,11 @@ class AppController {
                       <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                     </button>
                   ` : (res.isDuplicate ? `
-                    <button onclick="window.vsApp.resolveBatchDuplicate(${idx}, 'replace')" class="bg-white hover:bg-[#E5E5E5] text-black text-xs font-semibold transition">
-                      Replace Existing
+                    <button onclick="window.vsApp.resolveBatchDuplicate(${idx}, 'replace')" class="bg-white hover:bg-[#E5E5E5] text-black text-xs font-semibold px-3.5 py-2 rounded-lg transition inline-flex items-center space-x-1 shadow-sm">
+                      <span>Replace Existing</span>
                     </button>
-                    <button onclick="window.vsApp.resolveBatchDuplicate(${idx}, 'keep')" class="bg-[#171717] hover:bg-[#1D1D1D] text-[#A3A3A3] hover:text-white border border-white/[0.08] text-xs font-medium transition">
-                      Keep Existing
+                    <button onclick="window.vsApp.resolveBatchDuplicate(${idx}, 'keep')" class="bg-[#171717] hover:bg-[#1D1D1D] text-[#A3A3A3] hover:text-white border border-white/[0.08] text-xs font-medium px-3.5 py-2 rounded-lg transition inline-flex items-center space-x-1">
+                      <span>Keep Existing</span>
                     </button>
                   ` : `
                     <span class="px-2.5 py-1 rounded bg-[#171717] text-[#737373] border border-white/[0.08] text-xs font-medium">Cannot Ingest</span>
@@ -2056,6 +2153,111 @@ class AppController {
       if (btn) btn.disabled = false;
       if (btnText) btnText.textContent = 'Confirm & Publish';
       if (spinner) spinner.classList.add('hidden');
+    }
+  }
+
+  async refreshGoogleAdsStatus() {
+    const badge = document.getElementById('google-ads-mode-badge');
+    const desc = document.getElementById('google-ads-sync-desc');
+    const dot = document.getElementById('google-ads-status-dot');
+
+    try {
+      const status = await store.getGoogleAdsStatus();
+      if (!status || !status.success) return;
+
+      if (badge) {
+        badge.textContent = status.mode === 'live' ? 'Google Ads · Live' : 'Google Ads · Mock Mode';
+        badge.className = status.mode === 'live'
+          ? 'text-[10px] px-2 py-0.5 rounded bg-[#171717] border border-white/40 text-white font-mono'
+          : 'text-[10px] px-2 py-0.5 rounded bg-[#171717] border border-white/[0.1] text-[#A3A3A3] font-mono';
+      }
+
+      if (desc) {
+        let lastSyncStr = '';
+        if (status.lastGoogleSync) {
+          lastSyncStr = ` Last synced: ${new Date(status.lastGoogleSync).toLocaleString()}.`;
+        }
+        if (status.mode === 'live') {
+          desc.textContent = `Live GAQL connected to account ${status.customerId || ''}.${lastSyncStr}`;
+        } else {
+          desc.textContent = `Mock provider active for safe testing.${lastSyncStr}`;
+        }
+      }
+
+      if (dot) {
+        dot.className = status.mode === 'live' ? 'w-2 h-2 rounded-full bg-white animate-pulse' : 'w-2 h-2 rounded-full bg-white';
+      }
+    } catch (e) {
+      console.warn('[App] Could not refresh Google Ads status:', e);
+    }
+  }
+
+  async syncGoogleAds() {
+    const btn = document.getElementById('btn-sync-google-ads');
+    const btnText = document.getElementById('btn-sync-google-ads-text');
+    const alertBox = document.getElementById('google-ads-sync-alert');
+
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.textContent = 'Syncing...';
+
+    if (alertBox) {
+      alertBox.classList.remove('hidden');
+      alertBox.className = 'p-3 rounded-lg border border-white/[0.1] bg-[#171717] text-xs text-[#A3A3A3] flex items-center space-x-2';
+      alertBox.innerHTML = `
+        <span class="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin flex-shrink-0"></span>
+        <span>Querying Google Ads API and aggregating campaign metrics...</span>
+      `;
+    }
+
+    try {
+      const activeReport = store.getActiveReport();
+      const params = {};
+      if (activeReport && activeReport.period) {
+        params.startDate = activeReport.period.startDate;
+        params.endDate = activeReport.period.endDate;
+        params.periodId = activeReport.period.periodId;
+        params.periodLabel = activeReport.period.periodLabel;
+      }
+
+      const res = await store.syncGoogleAds(params);
+
+      if (alertBox) {
+        alertBox.className = 'p-3.5 rounded-lg border border-white/20 bg-[#171717] text-xs text-[#F5F5F5] flex items-start space-x-2.5';
+        alertBox.innerHTML = `
+          <i data-lucide="check-circle" class="w-4 h-4 text-white flex-shrink-0 mt-0.5"></i>
+          <div>
+            <span class="font-medium text-white">${res.message || 'Google Ads synchronized successfully!'}</span>
+            <p class="text-[11px] text-[#A3A3A3] mt-0.5">
+              Period: <strong>${res.periodLabel || res.periodId}</strong> · ${res.campaignCount} campaigns · ₹${(res.spend || 0).toLocaleString()} actual spend.
+            </p>
+          </div>
+        `;
+        this.refreshIcons();
+      }
+
+      await this.refreshGoogleAdsStatus();
+      this.populateReportDropdowns();
+      this.renderHeaderControls();
+      this.renderContextRail();
+      this.renderActiveView();
+      this.refreshIcons();
+
+    } catch (err) {
+      console.error('[App] Google Ads sync failed:', err);
+      if (alertBox) {
+        alertBox.className = 'p-3.5 rounded-lg border border-white/30 bg-[#171717] text-xs text-white flex items-start space-x-2.5';
+        alertBox.innerHTML = `
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-white flex-shrink-0 mt-0.5"></i>
+          <div>
+            <span class="font-medium text-white">Synchronization Error</span>
+            <p class="text-[11px] text-[#A3A3A3] mt-0.5">${err.message}</p>
+          </div>
+        `;
+        this.refreshIcons();
+      }
+    } finally {
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.textContent = 'Sync Google Ads';
     }
   }
 }

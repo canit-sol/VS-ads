@@ -93,6 +93,28 @@ export class ReportsJsonProvider {
     }
     return data;
   }
+
+  async getGoogleAdsStatus() {
+    try {
+      const res = await fetch('/api/google-ads-status');
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  async syncGoogleAds(params = {}) {
+    const res = await fetch('/api/sync-google-ads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Google Ads synchronization failed');
+    }
+    return data;
+  }
 }
 
 class AdsStore {
@@ -100,6 +122,23 @@ class AdsStore {
     this.provider = dataProvider;
     this.subscribers = new Set();
     this.init();
+  }
+
+  async getGoogleAdsStatus() {
+    if (!this.provider || !this.provider.getGoogleAdsStatus) {
+      return { success: false, mode: 'unavailable' };
+    }
+    return await this.provider.getGoogleAdsStatus();
+  }
+
+  async syncGoogleAds(params = {}) {
+    if (!this.provider || !this.provider.syncGoogleAds) {
+      throw new Error('Current provider does not support direct Google Ads synchronization');
+    }
+    const result = await this.provider.syncGoogleAds(params);
+    await this.loadMasterDataset();
+    this.notify('sync_google_ads', result);
+    return result;
   }
 
   setProvider(provider) {
