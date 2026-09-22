@@ -614,8 +614,10 @@ export class PeriodEngine {
           campaignMap.set(cKey, {
             id: 'camp_monthly_' + cKey.replace(/[^a-z0-9]/g, '_'),
             name: camp.name,
+            platform: camp.platform || (camp.channel === 'Meta' ? 'meta' : 'google'),
             channel: camp.channel,
             specialty: camp.specialty,
+            section: camp.section,
             spend: camp.spend || 0,
             impressions: camp.impressions || 0,
             clicks: camp.clicks || 0,
@@ -681,8 +683,10 @@ export class PeriodEngine {
       return {
         id: c.id,
         name: c.name,
+        platform: c.platform,
         channel: c.channel,
         specialty: c.specialty,
+        section: c.section,
         spend: c.spend,
         impressions: c.impressions,
         clicks: c.clicks,

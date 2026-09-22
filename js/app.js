@@ -1232,10 +1232,23 @@ class AppController {
       `).join('');
     }
 
-    selects.forEach(s => s.innerHTML = html);
+    selects.forEach(s => {
+      s.innerHTML = html;
+      if (store.activeReportId) {
+        s.value = store.activeReportId;
+      }
+    });
   }
 
   renderHeaderControls() {
+    // 0. Sync period dropdown values to store.activeReportId
+    if (store.activeReportId) {
+      const topSelect = document.getElementById('top-period-select');
+      const mobileSelect = document.getElementById('mobile-period-select');
+      if (topSelect && topSelect.value !== store.activeReportId) topSelect.value = store.activeReportId;
+      if (mobileSelect && mobileSelect.value !== store.activeReportId) mobileSelect.value = store.activeReportId;
+    }
+
     // 1. Sync platform tab styling (desktop and mobile)
     const currentPlatform = store.platformFilter || 'all';
     document.querySelectorAll('[data-platform-tab]').forEach(btn => {
@@ -1331,11 +1344,13 @@ class AppController {
     const winnerCpaEl = document.getElementById('rail-winner-cpa');
     if (winnerNameEl && analysis.primaryWinner) {
       winnerNameEl.textContent = analysis.primaryWinner.name;
-      const wLeads = analysis.primaryWinner.leads != null ? analysis.primaryWinner.leads : (analysis.primaryWinner.sourceResults || 0);
-      const wCalls = analysis.primaryWinner.phoneCalls != null ? analysis.primaryWinner.phoneCalls : (analysis.primaryWinner.calls != null ? analysis.primaryWinner.calls : 0);
+      const rawLeads = analysis.primaryWinner.leads != null ? analysis.primaryWinner.leads : (analysis.primaryWinner.sourceResults || 0);
+      const rawCalls = analysis.primaryWinner.phoneCalls != null ? analysis.primaryWinner.phoneCalls : (analysis.primaryWinner.calls != null ? analysis.primaryWinner.calls : 0);
+      const wLeads = Math.round(rawLeads);
+      const wCalls = Math.round(rawCalls);
       if (winnerCpaEl) {
         if (wLeads > 0 || wCalls > 0) {
-          winnerCpaEl.textContent = `${wLeads} Leads · ${wCalls} Calls`;
+          winnerCpaEl.textContent = `${wLeads.toLocaleString('en-IN')} Leads · ${wCalls.toLocaleString('en-IN')} Calls`;
         } else {
           winnerCpaEl.textContent = analysis.primaryWinner.cpa ? `CPA: ${formatINR(analysis.primaryWinner.cpa)}` : 'Top Inquiries';
         }
@@ -1511,16 +1526,16 @@ class AppController {
       },
       {
         label: 'Patient Leads',
-        val: formatNumber(m.leads),
+        val: formatNumber(Math.round(m.leads)),
         sub: 'Verified lead inquiries',
-        delta: comp ? `${m.leads >= comp.metrics.leads ? '+' : ''}${m.leads - comp.metrics.leads}` : null,
+        delta: comp ? `${m.leads >= comp.metrics.leads ? '+' : ''}${Math.round(m.leads - comp.metrics.leads).toLocaleString('en-IN')}` : null,
         isPositive: true
       },
       {
         label: 'Phone Inquiries',
-        val: formatNumber(m.phoneCalls),
+        val: formatNumber(Math.round(m.phoneCalls)),
         sub: 'Call extensions & clicks',
-        delta: comp ? `${m.phoneCalls >= comp.metrics.phoneCalls ? '+' : ''}${m.phoneCalls - comp.metrics.phoneCalls}` : null,
+        delta: comp ? `${m.phoneCalls >= comp.metrics.phoneCalls ? '+' : ''}${Math.round(m.phoneCalls - comp.metrics.phoneCalls).toLocaleString('en-IN')}` : null,
         isPositive: true
       }
     ];

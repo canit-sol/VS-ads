@@ -197,13 +197,13 @@ class AdsStore {
 
     // Active report
     const storedActive = safeStorage.getItem(STORAGE_KEYS.ACTIVE_REPORT);
-    this.activeReportId = storedActive && this.reports.some(r => r.reportId === storedActive)
+    this.activeReportId = storedActive && (this.reports.some(r => r.reportId === storedActive) || (storedActive.startsWith('vs_rep_') && storedActive.endsWith('_FULL')))
       ? storedActive
       : (this.reports[0] ? this.reports[0].reportId : null);
 
     // Comparison report (defaults to previous week)
     const storedComp = safeStorage.getItem(STORAGE_KEYS.COMP_REPORT);
-    this.comparisonReportId = storedComp && this.reports.some(r => r.reportId === storedComp)
+    this.comparisonReportId = storedComp && (this.reports.some(r => r.reportId === storedComp) || (storedComp.startsWith('vs_rep_') && storedComp.endsWith('_FULL')))
       ? storedComp
       : (this.reports[2] ? this.reports[2].reportId : (this.reports[1] ? this.reports[1].reportId : null));
 
@@ -277,11 +277,11 @@ class AdsStore {
         }));
         this.saveUploadHistory();
 
-        if (!this.activeReportId || !this.reports.some(r => r.reportId === this.activeReportId)) {
+        if (!this.activeReportId || !this.hasReport(this.activeReportId)) {
           this.activeReportId = this.reports[0].reportId;
           safeStorage.setItem(STORAGE_KEYS.ACTIVE_REPORT, this.activeReportId);
         }
-        if (!this.comparisonReportId || !this.reports.some(r => r.reportId === this.comparisonReportId)) {
+        if (!this.comparisonReportId || !this.hasReport(this.comparisonReportId)) {
           this.comparisonReportId = this.reports[1] ? this.reports[1].reportId : null;
           if (this.comparisonReportId) {
             safeStorage.setItem(STORAGE_KEYS.COMP_REPORT, this.comparisonReportId);
@@ -425,7 +425,7 @@ class AdsStore {
 
   // --- REPORT ACCESSORS ---
   getActiveReport() {
-    return this.reports.find(r => r.reportId === this.activeReportId) || this.reports[0] || null;
+    return this.getReport(this.activeReportId) || this.reports[0] || null;
   }
 
   getActiveReportScoped(platform = this.platformFilter) {
@@ -435,7 +435,7 @@ class AdsStore {
   }
 
   getComparisonReport() {
-    return this.reports.find(r => r.reportId === this.comparisonReportId) || this.reports[1] || null;
+    return this.getReport(this.comparisonReportId) || this.reports[1] || null;
   }
 
   getComparisonReportScoped(platform = this.platformFilter) {
@@ -448,8 +448,27 @@ class AdsStore {
     return this.reports;
   }
 
+  hasReport(reportId) {
+    return Boolean(this.getReport(reportId));
+  }
+
   getReport(reportId) {
-    return this.reports.find(r => r.reportId === reportId) || null;
+    if (!reportId) return null;
+    const direct = this.reports.find(r => r.reportId === reportId);
+    if (direct) return direct;
+
+    // Check if reportId corresponds to a dynamically computed monthly summary
+    const years = this.getYears();
+    for (const y of years) {
+      const months = this.getMonths(y);
+      for (const m of months) {
+        const ms = this.getMonthlySummary(y, m);
+        if (ms && ms.reportId === reportId) {
+          return ms;
+        }
+      }
+    }
+    return null;
   }
 
   setActiveReport(reportId) {
@@ -459,18 +478,26 @@ class AdsStore {
       this.notify('REPORT_CHANGED', { activeReportId: null });
       return;
     }
-    if (this.reports.some(r => r.reportId === reportId)) {
-      this.activeReportId = reportId;
-      safeStorage.setItem(STORAGE_KEYS.ACTIVE_REPORT, reportId);
-      this.notify('REPORT_CHANGED', { activeReportId: reportId });
+    const report = this.getReport(reportId);
+    if (report) {
+      this.activeReportId = report.reportId;
+      safeStorage.setItem(STORAGE_KEYS.ACTIVE_REPORT, report.reportId);
+      this.notify('REPORT_CHANGED', { activeReportId: report.reportId });
     }
   }
 
   setComparisonReport(reportId) {
-    if (this.reports.some(r => r.reportId === reportId)) {
-      this.comparisonReportId = reportId;
-      safeStorage.setItem(STORAGE_KEYS.COMP_REPORT, reportId);
-      this.notify('COMP_REPORT_CHANGED', { comparisonReportId: reportId });
+    if (!reportId) {
+      this.comparisonReportId = null;
+      safeStorage.removeItem(STORAGE_KEYS.COMP_REPORT);
+      this.notify('COMP_REPORT_CHANGED', { comparisonReportId: null });
+      return;
+    }
+    const report = this.getReport(reportId);
+    if (report) {
+      this.comparisonReportId = report.reportId;
+      safeStorage.setItem(STORAGE_KEYS.COMP_REPORT, report.reportId);
+      this.notify('COMP_REPORT_CHANGED', { comparisonReportId: report.reportId });
     }
   }
 
