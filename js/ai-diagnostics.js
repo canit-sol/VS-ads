@@ -1,5 +1,5 @@
 /**
- * VS Ads Intelligence - Algorithmic & AI Diagnostics Engine
+ * CANIT Skope - Algorithmic & AI Diagnostics Engine
  * Transforms raw metrics into structured diagnostic cards and strategic recommendations
  */
 
@@ -54,7 +54,7 @@ export class AiDiagnosticsEngine {
         badge: 'Critical Budget Leakage',
         title: `${formatINR(totalWastedSpend)} Consumed by Low/Zero Converting Channels`,
         metricSummary: `${wastefulCampaigns.length} campaigns absorbed ${Math.round((totalWastedSpend / report.budgetSummary.spent) * 100)}% of period spend`,
-        narrative: `Campaigns like ${wastefulCampaigns.map(c => c.name).join(', ')} accumulated high costs without driving proportionate hospital consultations. Knee Ready Search alone delivered 0 conversions at ₹75.90 CPC.`,
+        narrative: `Campaigns like ${wastefulCampaigns.map(c => c.name).join(', ')} accumulated high costs without driving proportionate conversion inquiries. Non-converting search queries alone absorbed capital at elevated CPCs.`,
         action: 'Pause non-converting Search campaigns immediately to salvage weekly run-rate.'
       });
     }
@@ -69,7 +69,7 @@ export class AiDiagnosticsEngine {
         badge: 'Channel Efficiency Gap',
         title: `PMax Delivers ${multiplier}x Cheaper Clicks Than Search`,
         metricSummary: `Search Avg CPC: ${formatINR(searchAvgCpc)} vs PMax Avg CPC: ${formatINR(pmaxAvgCpc)}`,
-        narrative: `Performance Max channels consistently yield high patient intent at a fraction of search auction costs. Scaling budget into Kilpauk PMax (CPA ${formatINR(primaryWinner.cpa || 2464)}) delivers 5x more conversions per rupee.`,
+        narrative: `Performance Max channels consistently yield high acquisition intent at a fraction of search auction costs. Scaling budget into top-performing PMax assets delivers significantly more conversions per rupee.`,
         action: 'Reallocate 80% of active daily search budget into top PMax asset groups.'
       });
     }
@@ -84,8 +84,8 @@ export class AiDiagnosticsEngine {
         badge: 'Call Intent Discrepancy',
         title: `${callHeavyCampaign.name}: ${callHeavyCampaign.phoneCalls} Calls But Only ${callHeavyCampaign.conversions} True Conversions`,
         metricSummary: `Phone CPA inflated to ${formatINR(callHeavyCampaign.cpa || 20192)}`,
-        narrative: `High raw phone call counts are masking poor appointment conversion rates. Hospital reception notes confirm spam, vendor inquiries, and general non-medical calls inflating ad metrics.`,
-        action: 'Audit call recordings, restrict call extensions to clinic hours, and add negative keywords.'
+        narrative: `High raw phone call counts are masking poor appointment conversion rates. Reception audit logs confirm spam, vendor inquiries, and general misdial calls inflating ad metrics.`,
+        action: 'Audit call recordings, restrict call extensions to business operating hours, and add negative keywords.'
       });
     }
 
@@ -130,7 +130,7 @@ export class AiDiagnosticsEngine {
           'Knee Ready PMax (Scale Budget & Spend)',
           'Chetpet Search (Phrase & Exact Match Only)'
         ],
-        projectedOutcome: '100+ New Patient Conversions in Remaining Sprint'
+        projectedOutcome: '100+ New Qualified Conversions in Remaining Sprint'
       }
     };
   }

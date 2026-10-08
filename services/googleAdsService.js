@@ -1,5 +1,5 @@
 /**
- * VS Ads Intelligence - Google Ads API Service
+ * CANIT Skope - Google Ads API Service
  * Phase 1: Google Ads Direct Ingestion & Token Management
  * 
  * Supports both Live GAQL Query Execution and Realistic Mock Fixture Mode.

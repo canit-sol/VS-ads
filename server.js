@@ -1,16 +1,18 @@
 /**
- * VS Ads Intelligence - Zero-Dependency Local Server & Global Publishing Engine
+ * CANIT Skope - Zero-Dependency Local Server & Global Publishing Engine
  * Serves the dashboard on http://localhost:3000
  */
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { exec } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
 const REPORTS_JSON_PATH = path.join(DATA_DIR, 'reports.json');
+const CLIENTS_SERVER_CONFIG_PATH = path.join(__dirname, 'config', 'clients.server.json');
 const GIT_BIN = fs.existsSync('C:\\Program Files\\Git\\cmd\\git.exe') ? '"C:\\Program Files\\Git\\cmd\\git.exe"' : 'git';
 
 const googleAdsService = require('./services/googleAdsService');
@@ -59,6 +61,26 @@ function parseJsonBody(req) {
   });
 }
 
+function safeTokenMatch(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+function getClientsServerConfig() {
+  if (!fs.existsSync(CLIENTS_SERVER_CONFIG_PATH)) {
+    return { clients: [] };
+  }
+  try {
+    return JSON.parse(fs.readFileSync(CLIENTS_SERVER_CONFIG_PATH, 'utf8'));
+  } catch (e) {
+    console.error('[ServerConfig] Error reading clients.server.json:', e.message);
+    return { clients: [] };
+  }
+}
+
 const server = http.createServer(async (req, res) => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost:3000'}`);
   let reqPath = decodeURIComponent(parsedUrl.pathname);
@@ -68,10 +90,113 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     });
     res.end();
     return;
+  }
+
+  // --- API ROUTE: GET /api/clients ---
+  if (req.method === 'GET' && reqPath === '/api/clients') {
+    const config = getClientsServerConfig();
+    const clients = Array.isArray(config.clients) ? config.clients.map(c => {
+      const dataFile = path.isAbsolute(c.dataPath) ? c.dataPath : path.join(__dirname, c.dataPath);
+      let reportCount = 0;
+      if (fs.existsSync(dataFile)) {
+        try {
+          const content = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+          reportCount = Array.isArray(content.reports) ? content.reports.length : (Array.isArray(content) ? content.length : 0);
+        } catch (e) {}
+      }
+      return {
+        clientId: c.clientId,
+        name: c.name,
+        currency: c.currency || '₹',
+        terminology: c.terminology || { leads: 'Leads', calls: 'Phone Inquiries', cpc: 'Average CPC' },
+        hasData: reportCount > 0,
+        reportCount: reportCount
+      };
+    }) : [];
+    return sendJson(res, 200, { success: true, clients });
+  }
+
+  // --- API ROUTE: GET /api/reports (Server-Side Token / Client Verification) ---
+  if (req.method === 'GET' && reqPath === '/api/reports') {
+    const rawToken = parsedUrl.searchParams.get('token') || 
+                     parsedUrl.searchParams.get('auth') || 
+                     (req.headers['authorization'] ? req.headers['authorization'].replace(/^Bearer\s+/i, '').trim() : null);
+    const clientParam = parsedUrl.searchParams.get('client') || parsedUrl.searchParams.get('clientId');
+
+    const config = getClientsServerConfig();
+    const clients = Array.isArray(config.clients) ? config.clients : [];
+
+    // Authenticate token or match selected client
+    let matchedClient = null;
+    if (rawToken) {
+      for (const client of clients) {
+        if (client.secretToken && safeTokenMatch(rawToken, client.secretToken)) {
+          matchedClient = client;
+          break;
+        }
+      }
+    } else if (clientParam) {
+      matchedClient = clients.find(c => 
+        c.clientId.toLowerCase() === clientParam.toLowerCase() || 
+        c.name.toLowerCase() === clientParam.toLowerCase()
+      );
+    }
+
+    if (!matchedClient) {
+      return sendJson(res, 401, {
+        success: false,
+        error: 'Unauthorized: A private client access token or valid client selection is required.'
+      });
+    }
+
+    // Load client dataset
+    const clientDataPath = path.isAbsolute(matchedClient.dataPath) 
+      ? matchedClient.dataPath 
+      : path.join(__dirname, matchedClient.dataPath || 'data/reports.json');
+
+    // If client data file doesn't exist yet on disk, return empty dataset (Plain initial state)
+    if (!fs.existsSync(clientDataPath)) {
+      return sendJson(res, 200, {
+        success: true,
+        client: {
+          clientId: matchedClient.clientId,
+          name: matchedClient.name,
+          currency: matchedClient.currency || '₹',
+          terminology: matchedClient.terminology || { leads: 'Leads', calls: 'Phone Inquiries', cpc: 'Average CPC' }
+        },
+        publishedAt: null,
+        version: '1.0.0',
+        reportCount: 0,
+        reports: []
+      });
+    }
+
+    try {
+      const dataset = JSON.parse(fs.readFileSync(clientDataPath, 'utf8'));
+      const reports = Array.isArray(dataset.reports) ? dataset.reports : (Array.isArray(dataset) ? dataset : []);
+      return sendJson(res, 200, {
+        success: true,
+        client: {
+          clientId: matchedClient.clientId,
+          name: matchedClient.name,
+          currency: matchedClient.currency || '₹',
+          terminology: matchedClient.terminology || { leads: 'Leads', calls: 'Phone Inquiries', cpc: 'Average CPC' }
+        },
+        publishedAt: dataset.publishedAt || null,
+        version: dataset.version || '1.0.0',
+        reportCount: reports.length,
+        reports: reports
+      });
+    } catch (readErr) {
+      return sendJson(res, 500, {
+        success: false,
+        error: `Failed to load client report data: ${readErr.message}`
+      });
+    }
   }
 
   // --- API ROUTE: GET /api/status ---
@@ -223,22 +348,40 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 400, { success: false, error: 'Reports payload must be a non-empty array.' });
       }
 
-      if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
+      const config = getClientsServerConfig();
+      const clients = Array.isArray(config.clients) ? config.clients : [];
+      let targetPath = REPORTS_JSON_PATH;
+      let clientName = 'CANIT Skope';
+
+      if (payload.clientId) {
+        const matched = clients.find(c => 
+          c.clientId.toLowerCase() === payload.clientId.toLowerCase() ||
+          c.name.toLowerCase() === payload.clientId.toLowerCase()
+        );
+        if (matched && matched.dataPath) {
+          targetPath = path.isAbsolute(matched.dataPath) ? matched.dataPath : path.join(__dirname, matched.dataPath);
+          clientName = matched.name;
+        }
+      }
+
+      const targetDir = path.dirname(targetPath);
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
       }
 
       const masterPayload = {
         version: '1.0.0',
         publishedAt: new Date().toISOString(),
-        source: 'VS Hospitals Performance Analytics',
+        source: `${clientName} — CANIT Skope Performance Analytics`,
         reportCount: reports.length,
         reports: reports
       };
 
-      fs.writeFileSync(REPORTS_JSON_PATH, JSON.stringify(masterPayload, null, 2), 'utf8');
+      fs.writeFileSync(targetPath, JSON.stringify(masterPayload, null, 2), 'utf8');
 
       return sendJson(res, 200, {
         success: true,
+        clientId: payload.clientId || null,
         count: reports.length,
         savedAt: masterPayload.publishedAt
       });
@@ -318,6 +461,13 @@ const server = http.createServer(async (req, res) => {
   }
 
   // --- STATIC FILE SERVING ---
+  const normalizedPath = reqPath.toLowerCase();
+  if (normalizedPath.includes('.server.json') || normalizedPath.includes('.env') || normalizedPath.startsWith('/config') || normalizedPath.startsWith('/data/clients')) {
+    res.writeHead(403, { 'Content-Type': 'text/plain' });
+    res.end('403 Forbidden: Direct access to protected resources is prohibited.');
+    return;
+  }
+
   const ext = path.extname(reqPath).toLowerCase();
   let filePath;
 
@@ -359,15 +509,31 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  const url = `http://localhost:${PORT}`;
-  console.log(`\n======================================================`);
-  console.log(`  VS Ads Intelligence Server & Publishing Engine LIVE!`);
-  console.log(`  Access URL: ${url}`);
-  console.log(`======================================================\n`);
+let currentPort = Number(PORT);
 
-  if (!process.env.PORT) {
-    const startCmd = process.platform === 'win32' ? `start ${url}` : `open ${url}`;
-    exec(startCmd, () => {});
+function listen() {
+  server.listen(currentPort, () => {
+    const url = `http://localhost:${currentPort}`;
+    console.log(`\n======================================================`);
+    console.log(`  CANIT Skope Server & Publishing Engine LIVE!`);
+    console.log(`  Access URL: ${url}`);
+    console.log(`======================================================\n`);
+
+    if (!process.env.PORT) {
+      const startCmd = process.platform === 'win32' ? `start ${url}` : `open ${url}`;
+      exec(startCmd, () => {});
+    }
+  });
+}
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE' && !process.env.PORT) {
+    console.log(`Port ${currentPort} is already in use. Trying port ${currentPort + 1}...`);
+    currentPort += 1;
+    setTimeout(listen, 250);
+  } else {
+    console.error('Server error:', err);
   }
 });
+
+listen();

@@ -1,5 +1,5 @@
 /**
- * VS Ads Intelligence - Normalized Data Models & Interfaces
+ * CANIT Skope - Normalized Data Models & Interfaces
  * Phase 2: Data Engine & Reporting Period Intelligence
  */
 
@@ -23,13 +23,13 @@
  * @property {'google'|'meta'|'unknown'} platform - Advertising platform ('google' | 'meta' | 'unknown')
  * @property {'Search'|'PMax'|'YouTube'|'Meta'|'Display'|'Other'} channel - Advertising channel type
  * @property {string} [section] - Source section header name
- * @property {string} specialty - Medical specialty or location (e.g. "Kilpauk Multispeciality")
+ * @property {string} specialty - Campaign category or location
  * @property {number} spend - Total spend in INR (₹)
  * @property {number} impressions - Impression count
  * @property {number} clicks - Interaction count
  * @property {number} ctr - Click-through rate (%) = (clicks / impressions) * 100
  * @property {number} cpc - Cost per click (₹) = spend / clicks
- * @property {number} leads - Direct patient lead inquiries
+ * @property {number} leads - Direct lead inquiries
  * @property {number} conversions - Verified recorded primary conversions
  * @property {number} phoneCalls - Direct phone call inquiries
  * @property {number} allConversions - All conversions (from explicit source column, or fallback)

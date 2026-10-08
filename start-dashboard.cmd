@@ -1,6 +1,6 @@
 @echo off
-title VS Ads Intelligence Dashboard
+title CANIT Skope Dashboard
 cd /d "%~dp0"
-echo Starting VS Ads Intelligence...
+echo Starting CANIT Skope...
 "%APPDATA%\Antigravity\bin\agy-node.cmd" server.js
 pause

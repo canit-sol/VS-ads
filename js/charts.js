@@ -1,5 +1,5 @@
 /**
- * VS Ads Intelligence - Chart Management Engine (Chart.js Integration)
+ * CANIT Skope - Chart Management Engine (Chart.js Integration)
  * Dark Editorial Analytics Palette: Muted Teal, Restrained Terracotta, Subtle Grids
  */
 
@@ -167,7 +167,7 @@ export class ChartManager {
                 if (context.dataset.yAxisID === 'yCpa') {
                   return ` CPA: ${formatINR(context.raw)}`;
                 }
-                return ` Conversions: ${context.raw} patient leads`;
+                return ` Conversions: ${context.raw} conversions`;
               }
             }
           }

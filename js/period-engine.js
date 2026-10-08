@@ -1,5 +1,5 @@
 /**
- * VS Ads Intelligence - Date & Reporting Period Intelligence Engine
+ * CANIT Skope - Date & Reporting Period Intelligence Engine
  * Phase 2: Data Engine & Reporting Period Intelligence
  */
 
@@ -371,7 +371,7 @@ export class PeriodEngine {
     const yearMatch = lower.match(/(20\d\d)/);
 
     const year = yearMatch ? parseInt(yearMatch[1], 10) : 2026;
-    let monthIdx = 7; // Default August (index 7) for VS Hospitals baseline
+    let monthIdx = 7; // Default August (index 7) baseline
 
     if (monthMatch) {
       const mStr = monthMatch[1].toLowerCase().slice(0, 3);

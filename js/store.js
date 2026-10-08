@@ -1,5 +1,5 @@
 /**
- * VS Ads Intelligence - Central Reactive State Store & Persistence Layer
+ * CANIT Skope - Central Reactive State Store & Persistence Layer
  * Phase 2: Data Engine & Reporting Period Intelligence
  */
 
@@ -56,28 +56,77 @@ export const CONFIG = {
 export class ReportsJsonProvider {
   constructor(options = {}) {
     this.endpoint = options.endpoint || './data/reports.json';
+    this.apiEndpoint = options.apiEndpoint || '/api/reports';
+    this.clientsEndpoint = options.clientsEndpoint || '/api/clients';
   }
 
-  async fetchReports() {
-    const url = `${this.endpoint}?v=${Date.now()}`;
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+  async fetchClients() {
+    try {
+      const res = await fetch(`${this.clientsEndpoint}?v=${Date.now()}`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.clients)) {
+          return data.clients;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to fetch clients list:', e);
     }
-    const data = await res.json();
-    const reports = Array.isArray(data.reports) ? data.reports : (Array.isArray(data) ? data : []);
-    return {
-      reports,
-      publishedAt: data.publishedAt || null,
-      version: data.version || '1.0.0'
-    };
+    return [
+      { clientId: 'nitin_wiers', name: 'nitin wiers', hasData: false },
+      { clientId: 'omnevum', name: 'omnevum', hasData: false },
+      { clientId: 'redbay', name: 'redbay', hasData: false },
+      { clientId: 'clf', name: 'clf', hasData: false },
+      { clientId: 'rps', name: 'rps', hasData: false }
+    ];
   }
 
-  async saveReports(reports) {
+  async fetchReports(clientId = null) {
+    let token = null;
+    let requestedClient = clientId;
+
+    if (typeof window !== 'undefined' && window.location) {
+      const urlParams = new URLSearchParams(window.location.search);
+      token = urlParams.get('token') || urlParams.get('auth');
+      if (!requestedClient) {
+        requestedClient = urlParams.get('client') || urlParams.get('clientId');
+      }
+    }
+
+    let url = `${this.apiEndpoint}?v=${Date.now()}`;
+    if (token) {
+      url += `&token=${encodeURIComponent(token)}`;
+    } else if (requestedClient) {
+      url += `&client=${encodeURIComponent(requestedClient)}`;
+    }
+
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success) {
+          return {
+            reports: Array.isArray(data.reports) ? data.reports : [],
+            publishedAt: data.publishedAt || null,
+            version: data.version || '1.0.0',
+            client: data.client || null
+          };
+        }
+      } else if (res.status === 401 || res.status === 403) {
+        throw new Error('UNAUTHORIZED_TOKEN');
+      }
+    } catch (e) {
+      if (e.message === 'UNAUTHORIZED_TOKEN') throw e;
+    }
+
+    throw new Error('UNAUTHORIZED_TOKEN');
+  }
+
+  async saveReports(reports, clientId = null) {
     const res = await fetch('/api/save-reports', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reports })
+      body: JSON.stringify({ reports, clientId })
     });
     return await res.json();
   }
@@ -146,79 +195,14 @@ class AdsStore {
   }
 
   init() {
-    // Check whether sample data should be loaded if store is empty
-    const urlParams = typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
-    const shouldSeedSample = CONFIG.LOAD_SAMPLE_DATA_BY_DEFAULT || 
-                             (urlParams && urlParams.get('sample') === 'true') ||
-                             (typeof window !== 'undefined' && window.__VS_ENABLE_DEV_SAMPLE__ === true);
-
-    // Load or initialize reports
-    const storedReports = safeStorage.getItem(STORAGE_KEYS.REPORTS);
-    if (storedReports) {
-      try {
-        const parsed = JSON.parse(storedReports);
-        this.reports = Array.isArray(parsed) ? parsed : [];
-      } catch (e) {
-        console.error('Failed to parse stored reports', e);
-        this.reports = [];
-      }
-    } else if (shouldSeedSample) {
-      this.reports = [...INITIAL_REPORTS];
-      this.saveReports();
-    } else {
-      this.reports = [];
-    }
-
-    // Load upload history
-    const storedHistory = safeStorage.getItem(STORAGE_KEYS.UPLOAD_HISTORY);
-    if (storedHistory) {
-      try {
-        const parsed = JSON.parse(storedHistory);
-        this.uploadHistory = Array.isArray(parsed) ? parsed : [];
-      } catch (e) {
-        this.uploadHistory = [];
-      }
-    } else if (shouldSeedSample) {
-      // Seed default baseline uploads
-      this.uploadHistory = INITIAL_REPORTS.map(r => ({
-        id: 'hist_' + r.reportId,
-        fileName: r.sourceFileName,
-        uploadedAt: r.uploadedAt,
-        periodLabel: r.period ? r.period.periodLabel : r.periodName,
-        rowCount: r.campaigns ? r.campaigns.length : 9,
-        campaignCount: r.campaigns ? r.campaigns.length : 9,
-        status: r.status || 'Ready',
-        reportId: r.reportId
-      }));
-      this.saveUploadHistory();
-    } else {
-      this.uploadHistory = [];
-    }
-
-    // Active report
-    const storedActive = safeStorage.getItem(STORAGE_KEYS.ACTIVE_REPORT);
-    this.activeReportId = storedActive && (this.reports.some(r => r.reportId === storedActive) || (storedActive.startsWith('vs_rep_') && storedActive.endsWith('_FULL')))
-      ? storedActive
-      : (this.reports[0] ? this.reports[0].reportId : null);
-
-    // Comparison report (defaults to previous week)
-    const storedComp = safeStorage.getItem(STORAGE_KEYS.COMP_REPORT);
-    this.comparisonReportId = storedComp && (this.reports.some(r => r.reportId === storedComp) || (storedComp.startsWith('vs_rep_') && storedComp.endsWith('_FULL')))
-      ? storedComp
-      : (this.reports[2] ? this.reports[2].reportId : (this.reports[1] ? this.reports[1].reportId : null));
-
-    // Editable recommendations
-    const storedRecs = safeStorage.getItem(STORAGE_KEYS.RECOMMENDATIONS);
-    if (storedRecs) {
-      try {
-        this.recommendations = JSON.parse(storedRecs);
-      } catch (e) {
-        this.recommendations = [...INITIAL_RECOMMENDATIONS];
-      }
-    } else {
-      this.recommendations = [...INITIAL_RECOMMENDATIONS];
-      this.saveRecommendations();
-    }
+    this.availableClients = [];
+    this.activeClient = null;
+    this.isUnauthorized = false;
+    this.reports = [];
+    this.uploadHistory = [];
+    this.activeReportId = null;
+    this.comparisonReportId = null;
+    this.recommendations = [...INITIAL_RECOMMENDATIONS];
 
     // UI state
     this.activeView = safeStorage.getItem(STORAGE_KEYS.VIEW) || 'overview';
@@ -228,6 +212,27 @@ class AdsStore {
     this.campaignSortKey = 'rank';
     this.campaignSortAsc = true;
     this.isContextRailOpen = true;
+  }
+
+  async loadClients() {
+    if (this.provider && this.provider.fetchClients) {
+      this.availableClients = await this.provider.fetchClients();
+      this.notify('CLIENTS_LOADED', { clients: this.availableClients });
+      return this.availableClients;
+    }
+    return [];
+  }
+
+  async switchClient(clientId) {
+    if (!clientId) return false;
+    let target = this.availableClients.find(c => c.clientId === clientId || c.name === clientId);
+    if (!target) {
+      target = { clientId, name: clientId };
+    }
+    this.activeClient = target;
+    const success = await this.loadMasterDataset(clientId);
+    this.notify('CLIENT_SWITCHED', { client: this.activeClient, reports: this.reports });
+    return success;
   }
 
   subscribe(callback) {
@@ -255,10 +260,15 @@ class AdsStore {
    * Automatically load master published dataset via the active data provider
    * Single global source of truth for public GitHub Pages visitors & local users
    */
-  async loadMasterDataset() {
+  async loadMasterDataset(clientId = null) {
     try {
-      const data = await this.provider.fetchReports();
+      const data = await this.provider.fetchReports(clientId || this.activeClient?.clientId);
       const reports = Array.isArray(data.reports) ? data.reports : (Array.isArray(data) ? data : []);
+      if (data.client) {
+        this.activeClient = data.client;
+      }
+      this.isUnauthorized = false;
+
       if (reports.length > 0) {
         this.reports = reports;
         this.saveReports(); // cache in localStorage for offline resiliency
@@ -288,11 +298,30 @@ class AdsStore {
           }
         }
 
-        this.notify('MASTER_DATA_LOADED', { reports: this.reports, publishedAt: this.masterPublishedAt });
+        this.notify('MASTER_DATA_LOADED', { reports: this.reports, publishedAt: this.masterPublishedAt, client: this.activeClient });
+        return true;
+      } else {
+        // Plain empty state for this client
+        this.reports = [];
+        this.activeReportId = null;
+        this.comparisonReportId = null;
+        this.uploadHistory = [];
+        this.masterPublishedAt = null;
+        safeStorage.removeItem(STORAGE_KEYS.REPORTS);
+        this.notify('MASTER_DATA_LOADED', { reports: [], publishedAt: null, client: this.activeClient });
         return true;
       }
     } catch (err) {
-      console.warn('Master dataset could not be fetched via provider, falling back to local storage cache:', err.message);
+      if (err.message === 'UNAUTHORIZED_TOKEN') {
+        this.isUnauthorized = true;
+        this.reports = [];
+        this.activeClient = null;
+        this.activeReportId = null;
+        safeStorage.removeItem(STORAGE_KEYS.REPORTS);
+        this.notify('AUTH_REQUIRED', { message: 'A valid private link from CANIT Pulse is required to access this report.' });
+        return false;
+      }
+      console.warn('Master dataset could not be fetched via provider:', err.message);
     }
     return false;
   }
@@ -300,7 +329,8 @@ class AdsStore {
   async syncToLocalServer() {
     if (!this.isLocalServer) return { success: false, error: 'Not on local server' };
     try {
-      return await this.provider.saveReports(this.reports);
+      const clientId = this.activeClient ? this.activeClient.clientId : null;
+      return await this.provider.saveReports(this.reports, clientId);
     } catch (e) {
       console.warn('Local server sync error:', e);
       return { success: false, error: e.message };

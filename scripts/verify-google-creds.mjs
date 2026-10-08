@@ -1,5 +1,5 @@
 /**
- * VS Ads Intelligence - Live Google Ads API Credentials Verification Tool
+ * CANIT Skope - Live Google Ads API Credentials Verification Tool
  * 
  * Usage: node scripts/verify-google-creds.mjs
  * 
@@ -11,7 +11,7 @@ const require = createRequire(import.meta.url);
 const googleAdsService = require('../services/googleAdsService.js');
 
 console.log('\n======================================================');
-console.log('  VS Ads Intelligence - Google Ads Credentials Checker');
+console.log('  CANIT Skope - Google Ads Credentials Checker');
 console.log('======================================================\n');
 
 const status = googleAdsService.getStatus();

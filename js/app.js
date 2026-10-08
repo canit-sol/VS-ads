@@ -1,5 +1,5 @@
 /**
- * VS Ads Intelligence - Main Application Controller
+ * CANIT Skope - Main Application Controller
  * Dark Editorial Analytics Refinement Pass
  */
 
@@ -94,22 +94,316 @@ class AppController {
       this.handleStoreChange(changeType, payload);
     });
 
-    // Automatically load master dataset from data/reports.json (Single Global Source of Truth)
-    await store.loadMasterDataset();
+    // 1. Load registered clients
+    await store.loadClients();
 
-    // Initial DOM renders & event binding
+    // 2. Determine initial client from URL or default to first client
+    const urlParams = typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
+    const requestedToken = urlParams ? (urlParams.get('token') || urlParams.get('auth')) : null;
+    const requestedClient = urlParams ? (urlParams.get('client') || urlParams.get('clientId')) : null;
+
+    if (requestedToken) {
+      await store.loadMasterDataset();
+    } else {
+      const defaultClientId = requestedClient || (store.availableClients[0]?.clientId || 'nitin_wiers');
+      await store.switchClient(defaultClientId);
+    }
+
+    // 3. Render client switcher tabs & branding
+    this.renderClientTabs();
+    this.applyClientBranding();
+
+    // 4. Initial DOM renders & event binding
     this.bindGlobalEvents();
     this.populateReportDropdowns();
     this.renderHeaderControls();
     this.renderContextRail();
 
-    // Resolve initial view from current URL location (hash first, then path, then 'overview')
+    // 5. Resolve initial view from current URL location
     const initialView = this.getRouteFromLocation();
     this.switchView(initialView, false);
     this.refreshIcons();
   }
 
+  applyClientBranding() {
+    const sidebarTitle = document.getElementById('sidebar-brand-title');
+    if (sidebarTitle) sidebarTitle.textContent = 'CANIT Skope';
+
+    const mobileTitle = document.getElementById('mobile-brand-title');
+    if (mobileTitle) mobileTitle.textContent = 'CANIT Skope';
+
+    const printTitle = document.getElementById('print-brand-title');
+    if (printTitle) printTitle.textContent = 'CANIT SKOPE';
+
+    document.title = 'CANIT Skope';
+
+    if (store.isUnauthorized) {
+      this.renderUnauthorizedScreen();
+    }
+  }
+
+  renderUnauthorizedScreen() {
+    const mainWorkspace = document.querySelector('main');
+    if (mainWorkspace) {
+      mainWorkspace.innerHTML = `
+        <div class="max-w-md mx-auto my-20 p-8 bg-[#111111] border border-white/[0.1] rounded-2xl text-center space-y-5 shadow-2xl">
+          <div class="w-14 h-14 rounded-2xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center mx-auto text-white shadow-inner">
+            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-base font-semibold text-white tracking-tight">CANIT Skope — Client Intelligence</h2>
+            <p class="text-xs text-[#A3A3A3] leading-relaxed mt-1">
+              Private client reporting portal. Enter your client access token or open your private link from <strong>CANIT Pulse</strong>.
+            </p>
+          </div>
+
+          <form id="auth-token-form" class="space-y-3 text-left">
+            <div>
+              <label for="input-access-token" class="block text-[11px] text-[#A3A3A3] font-medium mb-1.5">Client Access Token</label>
+              <input 
+                id="input-access-token" 
+                type="text" 
+                placeholder="e.g. vsh_live_839f28a7b1c4e92d6e3f4a719c0b2d" 
+                class="w-full px-3 py-2 bg-[#171717] border border-white/[0.12] rounded-xl text-xs text-white placeholder-[#525252] outline-none focus:border-white/40 transition"
+                required
+              />
+            </div>
+            <button 
+              type="submit" 
+              class="w-full py-2.5 px-4 bg-white hover:bg-[#E5E5E5] text-black font-semibold rounded-xl text-xs flex items-center justify-center space-x-1.5 transition shadow-sm"
+            >
+              <span>Unlock Client Dashboard</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </button>
+          </form>
+
+          <div class="pt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
+            <span class="text-[#737373]">Need a preview?</span>
+            <a href="?token=cnd_live_839f28a7b1c4e92d6e3f4a719c0b2d" class="text-white hover:underline font-medium">
+              Explore Demo Dataset →
+            </a>
+          </div>
+        </div>
+      `;
+
+      const form = document.getElementById('auth-token-form');
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const input = document.getElementById('input-access-token');
+          const token = input ? input.value.trim() : '';
+          if (token) {
+            window.location.search = `?token=${encodeURIComponent(token)}`;
+          }
+        });
+      }
+    }
+  }
+
+  renderClientTabs() {
+    const container = document.getElementById('client-tabs-list');
+    if (!container) return;
+
+    const rawClients = store.availableClients && store.availableClients.length > 0 
+      ? store.availableClients 
+      : [
+        { clientId: 'nitin_wiers', name: 'nitin wiers' },
+        { clientId: 'omnevum', name: 'omnevum' },
+        { clientId: 'redbay', name: 'redbay' },
+        { clientId: 'clf', name: 'clf' },
+        { clientId: 'rps', name: 'rps' }
+      ];
+
+    // Filter out internal demo/test clients for clean production tab bar
+    const clients = rawClients.filter(c => c.clientId !== 'canit_demo' && c.clientId !== 'vsh');
+    const activeId = store.activeClient ? store.activeClient.clientId : (clients[0] ? clients[0].clientId : 'nitin_wiers');
+
+    container.innerHTML = clients.map(client => {
+      const isActive = client.clientId === activeId;
+      const activeClasses = 'bg-white text-black font-semibold shadow-xs';
+      const inactiveClasses = 'bg-[#141414] hover:bg-[#1c1c1c] text-[#A3A3A3] hover:text-white border border-white/[0.08]';
+      return `
+        <button 
+          data-client-tab="${client.clientId}" 
+          class="px-3 py-1 rounded-lg text-xs transition flex items-center space-x-1.5 flex-shrink-0 ${isActive ? activeClasses : inactiveClasses}"
+        >
+          <span class="w-1.5 h-1.5 rounded-full ${isActive ? 'bg-black' : (client.hasData ? 'bg-emerald-400' : 'bg-neutral-600')}"></span>
+          <span>${client.name}</span>
+        </button>
+      `;
+    }).join('');
+
+    // Bind tab clicks
+    container.querySelectorAll('[data-client-tab]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const targetClientId = btn.getAttribute('data-client-tab');
+        if (targetClientId && targetClientId !== store.activeClient?.clientId) {
+          await store.switchClient(targetClientId);
+          this.applyClientBranding();
+          this.renderClientTabs();
+          this.populateReportDropdowns();
+          this.renderHeaderControls();
+          this.renderContextRail();
+          this.renderActiveView();
+          this.refreshIcons();
+        }
+      });
+    });
+
+    // Quick upload button in bar
+    const quickUploadBtn = document.getElementById('btn-quick-upload-excel');
+    if (quickUploadBtn && !quickUploadBtn._bound) {
+      quickUploadBtn._bound = true;
+      quickUploadBtn.addEventListener('click', () => {
+        const fileInput = document.getElementById('plain-excel-file-input') || document.getElementById('csv-file-input');
+        if (fileInput) fileInput.click();
+      });
+    }
+  }
+
+  renderPlainEmptyWorkspace() {
+    const emptyState = document.getElementById('overview-empty-state');
+    const content = document.getElementById('overview-content');
+    if (content) content.classList.add('hidden');
+    if (!emptyState) return;
+
+    emptyState.classList.remove('hidden');
+    const clientName = store.activeClient ? store.activeClient.name : 'Client';
+
+    emptyState.className = "bg-[#111111] border border-white/[0.08] rounded-2xl p-6 sm:p-10 max-w-2xl mx-auto my-6 space-y-6 shadow-2xl";
+    emptyState.innerHTML = `
+      <div class="text-center space-y-3">
+        <div class="w-14 h-14 rounded-2xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center mx-auto text-white shadow-inner">
+          <i data-lucide="file-spreadsheet" class="w-7 h-7 text-white"></i>
+        </div>
+        <div>
+          <div class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-white/[0.08] text-white border border-white/[0.1] mb-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>${clientName}</span>
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">
+            ${clientName} — Plain Workspace
+          </h2>
+          <p class="text-xs text-[#A3A3A3] mt-1 max-w-md mx-auto leading-relaxed">
+            No advertising dataset is loaded yet for <strong>${clientName}</strong>. Upload an Excel (.xlsx) or CSV report to instantly generate performance intelligence.
+          </p>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Area -->
+      <div 
+        id="plain-upload-dropzone" 
+        class="border-2 border-dashed border-white/[0.15] hover:border-white/40 bg-[#0e0e0e] hover:bg-[#141414] rounded-xl p-8 text-center transition cursor-pointer space-y-3"
+      >
+        <input id="plain-excel-file-input" type="file" accept=".csv,.xlsx,.xls,.tsv" class="hidden" />
+        <i data-lucide="upload-cloud" class="w-8 h-8 text-[#A3A3A3] mx-auto"></i>
+        <div>
+          <span class="text-xs font-semibold text-white block">
+            Click to upload Excel / CSV or drag & drop here
+          </span>
+          <span class="text-[11px] text-[#737373] block mt-0.5">
+            Target Client: <strong class="text-white">${clientName}</strong>
+          </span>
+        </div>
+      </div>
+
+      <div id="plain-upload-status" class="hidden text-xs text-center py-2 px-3 rounded-lg bg-[#171717] border border-white/[0.08]"></div>
+
+      <div class="pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs">
+        <button onclick="window.vsApp.downloadTemplate()" class="text-[#A3A3A3] hover:text-white transition flex items-center space-x-1.5">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>Download Sample CSV Template</span>
+        </button>
+        <button onclick="document.getElementById('plain-excel-file-input').click()" class="bg-white hover:bg-neutral-200 text-black font-semibold px-4 py-1.5 rounded-lg text-xs transition flex items-center space-x-1.5 shadow-sm">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span>Select File</span>
+        </button>
+      </div>
+    `;
+
+    const fileInput = document.getElementById('plain-excel-file-input');
+    const dropzone = document.getElementById('plain-upload-dropzone');
+    if (fileInput) {
+      fileInput.addEventListener('change', e => {
+        if (e.target.files && e.target.files.length > 0) {
+          this.processUploadedFileForClient(e.target.files[0]);
+        }
+      });
+    }
+    if (dropzone) {
+      dropzone.addEventListener('click', () => {
+        if (fileInput) fileInput.click();
+      });
+      ['dragenter', 'dragover'].forEach(n => {
+        dropzone.addEventListener(n, e => {
+          e.preventDefault();
+          dropzone.classList.add('border-white/50', 'bg-[#171717]');
+        });
+      });
+      ['dragleave', 'drop'].forEach(n => {
+        dropzone.addEventListener(n, e => {
+          e.preventDefault();
+          dropzone.classList.remove('border-white/50', 'bg-[#171717]');
+        });
+      });
+      dropzone.addEventListener('drop', e => {
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          this.processUploadedFileForClient(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    this.refreshIcons();
+  }
+
+  async processUploadedFileForClient(file) {
+    if (!file) return;
+    const statusEl = document.getElementById('plain-upload-status');
+    if (statusEl) {
+      statusEl.classList.remove('hidden');
+      statusEl.className = 'text-xs text-center py-2 px-3 rounded-lg bg-[#171717] border border-white/[0.08] text-white flex items-center justify-center space-x-2';
+      statusEl.innerHTML = '<div class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span>Parsing and generating intelligence for ' + (store.activeClient?.name || 'Client') + '...</span>';
+    }
+
+    try {
+      const results = await CsvEngine.parseMultipleCsvs([file], store.getAllReports());
+      let savedCount = 0;
+      results.forEach(res => {
+        if (res.success && res.report) {
+          store.addReport(res.report);
+          savedCount++;
+        }
+      });
+
+      if (savedCount > 0) {
+        await store.syncToLocalServer();
+        await store.loadClients();
+        this.renderClientTabs();
+        this.populateReportDropdowns();
+        this.renderHeaderControls();
+        this.renderContextRail();
+        this.renderActiveView();
+        this.refreshIcons();
+      } else {
+        if (statusEl) {
+          statusEl.className = 'text-xs text-center py-2 px-3 rounded-lg bg-red-950/50 border border-red-500/30 text-red-300';
+          statusEl.textContent = results[0]?.error || 'Failed to parse file. Ensure it is a valid CSV or Excel file.';
+        }
+      }
+    } catch (err) {
+      if (statusEl) {
+        statusEl.className = 'text-xs text-center py-2 px-3 rounded-lg bg-red-950/50 border border-red-500/30 text-red-300';
+        statusEl.textContent = 'Upload error: ' + err.message;
+      }
+    }
+  }
+
   handleStoreChange(type, payload) {
+    this.applyClientBranding();
     this.populateReportDropdowns();
     this.renderHeaderControls();
     this.renderContextRail();
@@ -415,9 +709,9 @@ class AppController {
     const totalCalls = tM.phoneCalls;
     const gConvOrLeads = gM.conversions > 0 ? gM.conversions : (gM.leads > 0 ? gM.leads : 0);
     const mResults = mM.sourceResults > 0 ? mM.sourceResults : (mM.leads > 0 ? mM.leads : 0);
-    const totalPatientInquiries = totalLeads + totalCalls;
+    const totalClientInquiries = totalLeads + totalCalls;
 
-    const blendedCpa = totalPatientInquiries > 0 ? Math.round(totalSpend / totalPatientInquiries) : null;
+    const blendedCpa = totalClientInquiries > 0 ? Math.round(totalSpend / totalClientInquiries) : null;
     const totalClicks = tM.clicks;
     const totalCtr = tM.ctr;
     const totalCpc = tM.cpc;
@@ -509,8 +803,8 @@ class AppController {
           <div style="border-bottom: 2px solid #0F172A; padding-bottom: 12px; margin-bottom: 16px; display: flex; align-items: flex-start; justify-content: space-between;">
             <div>
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                <span style="background: #0F172A; color: #FFFFFF; font-size: 8pt; font-weight: 800; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.08em; text-transform: uppercase;">VS HOSPITALS</span>
-                <span style="color: #64748B; font-size: 8pt; font-weight: 600;">| ADVERTISING INTELLIGENCE ENGINE</span>
+                <span style="background: #0F172A; color: #FFFFFF; font-size: 8pt; font-weight: 800; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.08em; text-transform: uppercase;">${(store.activeClient?.name || 'CANIT SKOPE').toUpperCase()}</span>
+                <span style="color: #64748B; font-size: 8pt; font-weight: 600;">| CANIT SKOPE</span>
                 <span class="dossier-badge-green" style="font-size: 7pt; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">AUDITED DIRECT PIPELINE</span>
               </div>
               <h1 style="font-size: 16pt; font-weight: 900; color: #09090B; margin: 0; line-height: 1.2; letter-spacing: -0.02em;">EXECUTIVE ADVERTISING PERFORMANCE DOSSIER</h1>
@@ -532,8 +826,8 @@ class AppController {
                 <span style="font-size: 6.5pt; color: #475569; font-weight: 500;">Run-rate: ${formatINR(dailyRate)}/day</span>
               </div>
               <div class="dossier-card dossier-card-neutral" style="padding: 10px 12px;">
-                <span style="font-size: 7pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Patient Leads / Conv</span>
-                <span style="font-size: 13pt; font-weight: 800; color: #09090B; display: block; margin-top: 2px;">${formatNumber(totalPatientInquiries)}</span>
+                <span style="font-size: 7pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Leads / Conversions</span>
+                <span style="font-size: 13pt; font-weight: 800; color: #09090B; display: block; margin-top: 2px;">${formatNumber(totalClientInquiries)}</span>
                 <span style="font-size: 6.5pt; color: #059669; font-weight: 600;">${formatNumber(gConvOrLeads)} Google + ${formatNumber(mResults)} Meta</span>
               </div>
               <div class="dossier-card dossier-card-neutral" style="padding: 10px 12px;">
@@ -605,7 +899,7 @@ class AppController {
                 </div>
 
                 <div style="font-size: 7.5pt; color: #1E3A8A; background: #EFF6FF; border: 1px solid #BFDBFE; padding: 8px 10px; border-radius: 6px; line-height: 1.35;">
-                  <strong style="color: #1E40AF;">Channel Strategic Function:</strong> High-intent direct patient acquisition engine. Generates 98.8% of hospital appointment inquiries. Critical focus: freeze 16 zero-converting broad-match campaigns and funnel budget to core specialties.
+                  <strong style="color: #1E40AF;">Channel Strategic Function:</strong> High-intent direct conversion engine. Generates 98.8% of primary conversion inquiries. Critical focus: freeze zero-converting broad-match campaigns and funnel budget to core top performers.
                 </div>
               </div>
 
@@ -647,7 +941,7 @@ class AppController {
                 </div>
 
                 <div style="font-size: 7.5pt; color: #5B21B6; background: #FAF5FF; border: 1px solid #DDD6FE; padding: 8px 10px; border-radius: 6px; line-height: 1.35;">
-                  <strong style="color: #6D28D9;">Channel Strategic Function:</strong> Brand awareness and social discovery engine. Delivers highly cost-effective patient reach (₹9.49 CPC). Recommended evolution: transition cold instant forms to WhatsApp click-to-chat to slash lead acquisition costs.
+                  <strong style="color: #6D28D9;">Channel Strategic Function:</strong> Brand awareness and social discovery engine. Delivers highly cost-effective audience reach (₹9.49 CPC). Recommended evolution: transition cold instant forms to WhatsApp click-to-chat to slash lead acquisition costs.
                 </div>
               </div>
 
@@ -663,7 +957,7 @@ class AppController {
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 7.5pt; color: #334155; line-height: 1.35;">
               <div>
                 <strong style="color: #059669; display: block; margin-bottom: 2px;">1. Anchor Performance</strong>
-                Top specialty search campaigns generated over 2,390 patient conversions at an exceptional sub-₹10 CPA, validating deep demand for localized hospital services.
+                Top search campaigns generated over 2,390 conversions at an exceptional sub-₹10 CPA, validating deep demand for core offerings.
               </div>
               <div>
                 <strong style="color: #DC2626; display: block; margin-bottom: 2px;">2. Immediate Budget Leakage</strong>
@@ -671,7 +965,7 @@ class AppController {
               </div>
               <div>
                 <strong style="color: #2563EB; display: block; margin-bottom: 2px;">3. Multi-Channel Convergence</strong>
-                Pairing Google Search intent capture with Meta WhatsApp retargeting will unlock an estimated +200 to +300 additional monthly hospital patient consultations.
+                Pairing Google Search intent capture with Meta WhatsApp retargeting will unlock an estimated +200 to +300 additional monthly qualified conversions.
               </div>
             </div>
           </div>
@@ -679,7 +973,7 @@ class AppController {
         </div>
 
         <div style="border-top: 1px solid #CBD5E1; padding-top: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 7pt; color: #64748B;">
-          <span>CONFIDENTIAL · FOR INTERNAL EXECUTIVE REVIEW ONLY · VS HOSPITALS</span>
+          <span>CONFIDENTIAL · FOR INTERNAL EXECUTIVE REVIEW ONLY · ${(store.activeClient?.name || 'CANIT SKOPE').toUpperCase()}</span>
           <span>Page 1 of 4 · Executive Intelligence Dossier</span>
         </div>
       </div>
@@ -692,11 +986,11 @@ class AppController {
           <div style="border-bottom: 2px solid #0F172A; padding-bottom: 10px; margin-bottom: 12px; display: flex; align-items: flex-start; justify-content: space-between;">
             <div>
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
-                <span style="background: #0F172A; color: #FFFFFF; font-size: 7.5pt; font-weight: 800; padding: 2px 6px; border-radius: 4px;">VS HOSPITALS</span>
+                <span style="background: #0F172A; color: #FFFFFF; font-size: 7.5pt; font-weight: 800; padding: 2px 6px; border-radius: 4px;">${(store.activeClient?.name || 'CANIT SKOPE').toUpperCase()}</span>
                 <span style="color: #64748B; font-size: 7.5pt; font-weight: 600;">SECTION 02 · CAMPAIGN EFFICIENCY AUDIT</span>
               </div>
               <h2 style="font-size: 14pt; font-weight: 900; color: #09090B; margin: 0; line-height: 1.2;">CAMPAIGN PERFORMANCE & CPA DISTRIBUTION AUDIT</h2>
-              <p style="font-size: 8pt; color: #475569; margin: 2px 0 0 0;">Comprehensive audit of all 21 active campaigns ranked by investment and patient acquisition yield</p>
+              <p style="font-size: 8pt; color: #475569; margin: 2px 0 0 0;">Comprehensive audit of active campaigns ranked by investment and acquisition yield</p>
             </div>
             <div style="text-align: right;">
               <div style="font-size: 7.5pt; font-weight: 700; color: #0F172A; background: #F1F5F9; border: 1px solid #CBD5E1; padding: 2px 6px; border-radius: 4px; display: inline-block;">CYCLE: ${periodLabel}</div>
@@ -769,7 +1063,7 @@ class AppController {
         </div>
 
         <div style="border-top: 1px solid #CBD5E1; padding-top: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 7pt; color: #64748B;">
-          <span>CONFIDENTIAL · FOR INTERNAL EXECUTIVE REVIEW ONLY · VS HOSPITALS</span>
+          <span>CONFIDENTIAL · FOR INTERNAL EXECUTIVE REVIEW ONLY · ${(store.activeClient?.name || 'CANIT SKOPE').toUpperCase()}</span>
           <span>Page 2 of 4 · Campaign Audit</span>
         </div>
       </div>
@@ -782,7 +1076,7 @@ class AppController {
           <div style="border-bottom: 2px solid #0F172A; padding-bottom: 10px; margin-bottom: 14px; display: flex; align-items: flex-start; justify-content: space-between;">
             <div>
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
-                <span style="background: #0F172A; color: #FFFFFF; font-size: 7.5pt; font-weight: 800; padding: 2px 6px; border-radius: 4px;">VS HOSPITALS</span>
+                <span style="background: #0F172A; color: #FFFFFF; font-size: 7.5pt; font-weight: 800; padding: 2px 6px; border-radius: 4px;">${(store.activeClient?.name || 'CANIT SKOPE').toUpperCase()}</span>
                 <span style="color: #64748B; font-size: 7.5pt; font-weight: 600;">SECTION 03 · SPRINT INTELLIGENCE & INEFFICIENCIES</span>
               </div>
               <h2 style="font-size: 14pt; font-weight: 900; color: #09090B; margin: 0; line-height: 1.2;">DIAGNOSTIC ANOMALY TRACKS & WASTE RECLAMATION</h2>
@@ -822,7 +1116,7 @@ class AppController {
               </div>
               <h4 style="font-size: 9.5pt; font-weight: 800; color: #991B1B; margin: 0 0 5px 0;">Massive Search Capital Burn on Zero-Conversion Keywords</h4>
               <p style="font-size: 7.2pt; color: #450A0A; line-height: 1.35; margin: 0 0 6px 0;">
-                16 out of 17 Google Search campaigns expended ₹2,15,818 without recording a single verified patient conversion or phone call. Unrestricted broad-match bidding allowed budget to drain into irrelevant queries.
+                16 out of 17 Google Search campaigns expended ₹2,15,818 without recording a single verified client conversion or phone call. Unrestricted broad-match bidding allowed budget to drain into irrelevant queries.
               </p>
               <div style="background: #FFFFFF; border: 1px solid #FECACA; padding: 6px 8px; border-radius: 4px; font-size: 7pt; color: #991B1B;">
                 <strong>Prescribed Action:</strong> Immediate freeze of low-intent ad groups and negative keyword lockdown.
@@ -837,7 +1131,7 @@ class AppController {
               </div>
               <h4 style="font-size: 9.5pt; font-weight: 800; color: #065F46; margin: 0 0 5px 0;">Star Performing Asset Starved of Budget Allocation</h4>
               <p style="font-size: 7.2pt; color: #064E3B; line-height: 1.35; margin: 0 0 6px 0;">
-                The top search campaigns delivered over 2,390 conversions at a phenomenal CPA of ₹6.15 to ₹16.14. Despite generating 98.8% of hospital inquiries, it received only 5.8% of the total weekly advertising budget.
+                The top search campaigns delivered over 2,390 conversions at a phenomenal CPA of ₹6.15 to ₹16.14. Despite generating 98.8% of primary conversion inquiries, it received only 5.8% of the total weekly advertising budget.
               </p>
               <div style="background: #FFFFFF; border: 1px solid #A7F3D0; padding: 6px 8px; border-radius: 4px; font-size: 7pt; color: #065F46;">
                 <strong>Prescribed Action:</strong> Reallocate ₹40k–₹50k/week from paused campaigns to scale this winning funnel.
@@ -852,7 +1146,7 @@ class AppController {
               </div>
               <h4 style="font-size: 9.5pt; font-weight: 800; color: #1E40AF; margin: 0 0 5px 0;">Search High Intent vs Meta Social Discovery Imbalance</h4>
               <p style="font-size: 7.2pt; color: #1E3A8A; line-height: 1.35; margin: 0 0 6px 0;">
-                Google delivers direct surgical consultation intent (10.87% CTR). Meta provides cost-effective impressions (1,652 results at ₹14.39 CPR) but suffers from higher form-fill CPA (₹2,161).
+                Google delivers direct conversion intent (10.87% CTR). Meta provides cost-effective impressions (1,652 results at ₹14.39 CPR) but suffers from higher form-fill CPA (₹2,161).
               </p>
               <div style="background: #FFFFFF; border: 1px solid #BFDBFE; padding: 6px 8px; border-radius: 4px; font-size: 7pt; color: #1E40AF;">
                 <strong>Prescribed Action:</strong> Reposition Meta towards WhatsApp click-to-chat and video retargeting.
@@ -865,9 +1159,9 @@ class AppController {
                 <span class="dossier-badge-amber" style="font-size: 6.8pt; font-weight: 800; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">DIAGNOSTIC TRACK 04 · SEARCH HYGIENE</span>
                 <span style="font-size: 7pt; color: #D97706; font-weight: 700;">Negative Deficit</span>
               </div>
-              <h4 style="font-size: 9.5pt; font-weight: 800; color: #92400E; margin: 0 0 5px 0;">11,000+ Non-Converting Clicks Outside Medical Catchment</h4>
+              <h4 style="font-size: 9.5pt; font-weight: 800; color: #92400E; margin: 0 0 5px 0;">11,000+ Non-Converting Clicks Outside Target Catchment</h4>
               <p style="font-size: 7.2pt; color: #78350F; line-height: 1.35; margin: 0 0 6px 0;">
-                Search query mining reveals clicks on informational definitions ("what is oncology symptoms", "free medical advice") and out-of-radius queries, driving up CPCs without driving clinic appointments.
+                Search query mining reveals clicks on generic informational definitions and out-of-radius queries, driving up CPCs without driving qualified inquiries.
               </p>
               <div style="background: #FFFFFF; border: 1px solid #FDE68A; padding: 6px 8px; border-radius: 4px; font-size: 7pt; color: #92400E;">
                 <strong>Prescribed Action:</strong> Apply negative list (85+ tokens) and enforce 15km geographic boundary.
@@ -879,7 +1173,7 @@ class AppController {
         </div>
 
         <div style="border-top: 1px solid #CBD5E1; padding-top: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 7pt; color: #64748B;">
-          <span>CONFIDENTIAL · FOR INTERNAL EXECUTIVE REVIEW ONLY · VS HOSPITALS</span>
+          <span>CONFIDENTIAL · FOR INTERNAL EXECUTIVE REVIEW ONLY · ${(store.activeClient?.name || 'CANIT SKOPE').toUpperCase()}</span>
           <span>Page 3 of 4 · Diagnostic Tracks</span>
         </div>
       </div>
@@ -892,7 +1186,7 @@ class AppController {
           <div style="border-bottom: 2px solid #0F172A; padding-bottom: 10px; margin-bottom: 12px; display: flex; align-items: flex-start; justify-content: space-between;">
             <div>
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
-                <span style="background: #0F172A; color: #FFFFFF; font-size: 7.5pt; font-weight: 800; padding: 2px 6px; border-radius: 4px;">VS HOSPITALS</span>
+                <span style="background: #0F172A; color: #FFFFFF; font-size: 7.5pt; font-weight: 800; padding: 2px 6px; border-radius: 4px;">${(store.activeClient?.name || 'CANIT SKOPE').toUpperCase()}</span>
                 <span style="color: #64748B; font-size: 7.5pt; font-weight: 600;">SECTION 04 · STRATEGIC BLUEPRINT & ACTION PLAN</span>
               </div>
               <h2 style="font-size: 14pt; font-weight: 900; color: #09090B; margin: 0; line-height: 1.2;">7-DAY STRATEGIC ACTION PLAN & OPTIMIZATION IDEAS</h2>
@@ -962,10 +1256,10 @@ class AppController {
               </div>
               <h4 style="font-size: 8.8pt; font-weight: 800; color: #09090B; margin: 0 0 4px 0;">Implement CRM Lead Feedback & Conversion Tracking</h4>
               <p style="font-size: 7.2pt; color: #334155; line-height: 1.35; margin: 0 0 6px 0;">
-                Integrate hospital HIS consultation check-ins and phone recording verification with Google Ads Enhanced Conversions and Meta CAPI to optimize for verified patient visits rather than clicks.
+                Integrate CRM consultation check-ins and phone recording verification with Google Ads Enhanced Conversions and Meta CAPI to optimize for verified qualified inquiries rather than clicks.
               </p>
               <div style="font-size: 6.8pt; color: #64748B; display: flex; justify-content: space-between;">
-                <span>Target: HIS & Analytics Bridge</span>
+                <span>Target: CRM & Analytics Bridge</span>
                 <span style="font-weight: 700; color: #0F172A;">Owner: Analytics & Tech Lead</span>
               </div>
             </div>
@@ -1011,8 +1305,8 @@ class AppController {
                   <td style="text-align: center; padding: 5px 3px !important;"><span class="dossier-badge-amber" style="background: #FEF3C7 !important; color: #92400E !important; border: 1px solid #FCD34D !important; padding: 1.5px 5px !important; border-radius: 3px !important; font-weight: 700 !important; font-size: 6.8pt !important;">Active</span></td>
                 </tr>
                 <tr style="border-bottom: 1px solid #E2E8F0 !important; background: #F8FAFC !important;">
-                  <td style="font-weight: 700; color: #09090B !important; padding: 5px 4px !important;">4. Configure CRM Patient Admission Feedback</td>
-                  <td style="text-align: center; padding: 5px 3px !important;"><span class="dossier-badge-google" style="background: #DBEAFE !important; color: #1D4ED8 !important; border: 1px solid #93C5FD !important; padding: 1.5px 5px !important; border-radius: 3px !important; font-weight: 700 !important; font-size: 6.8pt !important;">Analytics / HIS</span></td>
+                  <td style="font-weight: 700; color: #09090B !important; padding: 5px 4px !important;">4. Configure CRM Qualified Conversion Feedback</td>
+                  <td style="text-align: center; padding: 5px 3px !important;"><span class="dossier-badge-google" style="background: #DBEAFE !important; color: #1D4ED8 !important; border: 1px solid #93C5FD !important; padding: 1.5px 5px !important; border-radius: 3px !important; font-weight: 700 !important; font-size: 6.8pt !important;">Analytics / CRM</span></td>
                   <td style="text-align: center; padding: 5px 3px !important;"><span class="dossier-badge-amber" style="background: #FEF3C7 !important; color: #92400E !important; border: 1px solid #FCD34D !important; padding: 1.5px 5px !important; border-radius: 3px !important; font-weight: 700 !important; font-size: 6.8pt !important;">Medium</span></td>
                   <td style="text-align: center; color: #334155 !important; padding: 5px 3px !important; font-weight: 600 !important;">Day 5–7</td>
                   <td style="text-align: center; color: #334155 !important; padding: 5px 3px !important;">Tech Lead</td>
@@ -1047,7 +1341,7 @@ class AppController {
         </div>
 
         <div style="border-top: 1px solid #CBD5E1; padding-top: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 7pt; color: #64748B;">
-          <span>CONFIDENTIAL · FOR INTERNAL EXECUTIVE REVIEW ONLY · VS HOSPITALS</span>
+          <span>CONFIDENTIAL · FOR INTERNAL EXECUTIVE REVIEW ONLY · ${(store.activeClient?.name || 'CANIT SKOPE').toUpperCase()}</span>
           <span>Page 4 of 4 · Strategic Blueprint</span>
         </div>
       </div>
@@ -1393,8 +1687,7 @@ class AppController {
 
     const rawReport = store.getActiveReport();
     if (!rawReport || store.getAllReports().length === 0) {
-      if (emptyState) emptyState.classList.remove('hidden');
-      if (content) content.classList.add('hidden');
+      this.renderPlainEmptyWorkspace();
       return;
     }
 
@@ -1525,7 +1818,7 @@ class AppController {
         highlight: true
       },
       {
-        label: 'Patient Leads',
+        label: store.activeClient?.terminology?.leads || 'Leads',
         val: formatNumber(Math.round(m.leads)),
         sub: 'Verified lead inquiries',
         delta: comp ? `${m.leads >= comp.metrics.leads ? '+' : ''}${Math.round(m.leads - comp.metrics.leads).toLocaleString('en-IN')}` : null,

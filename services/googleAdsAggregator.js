@@ -1,5 +1,5 @@
 /**
- * VS Ads Intelligence - Google Ads Data Aggregator & Normalizer
+ * CANIT Skope - Google Ads Data Aggregator & Normalizer
  * Phase 1: Normalization into Unified CampaignMetric & Report Interfaces
  */
 
@@ -314,7 +314,7 @@ class GoogleAdsAggregator {
       return {
         version: '1.0.0',
         publishedAt: new Date().toISOString(),
-        source: 'VS Hospitals Performance Analytics',
+        source: 'CANIT Skope Performance Analytics',
         reportCount: 1,
         reports: [newReport]
       };
@@ -336,7 +336,7 @@ class GoogleAdsAggregator {
     return {
       version: currentMaster.version || '1.0.0',
       publishedAt: new Date().toISOString(),
-      source: currentMaster.source || 'VS Hospitals Performance Analytics',
+      source: currentMaster.source || 'CANIT Skope Performance Analytics',
       reportCount: existingReports.length,
       reports: existingReports
     };

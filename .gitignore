@@ -3,5 +3,6 @@ node_modules/
 .DS_Store
 .env
 .env.*
-*.key
+config/*.server.json
+*.server.json
 

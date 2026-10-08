@@ -1,5 +1,5 @@
 /**
- * VS Ads Intelligence - Industrial-Grade CSV Ingestion & Normalization Engine
+ * CANIT Skope - Industrial-Grade CSV Ingestion & Normalization Engine
  * Phase 2: Data Engine & Reporting Period Intelligence
  */
 
@@ -8,7 +8,7 @@ import { PeriodEngine } from './period-engine.js';
 export class CsvEngine {
   static FORMATS = {
     STANDARD: 'Standard Normalized',
-    CROSS_TAB: 'VS Hospitals KPI Cross-Tab'
+    CROSS_TAB: 'CANIT Skope KPI Cross-Tab'
   };
 
   static KPI_SYNONYMS = {
@@ -360,7 +360,7 @@ export class CsvEngine {
         rowCount: rawRows.length,
         campaignCount: distinctCampaigns.size,
         granularity: 'period',
-        granularityDescription: 'VS Hospitals KPI Cross-Tab pre-aggregated reporting periods',
+        granularityDescription: 'CANIT Skope KPI Cross-Tab pre-aggregated reporting periods',
         allConversionsDerived: false,
         errors,
         warnings,
@@ -739,7 +739,7 @@ export class CsvEngine {
   }
 
   /**
-   * Parse a VS Hospitals KPI Cross-Tab CSV dataset into an array of Report objects (one per detected period)
+   * Parse a CANIT Skope KPI Cross-Tab CSV dataset into an array of Report objects (one per detected period)
    * @param {Object} parsedData - PapaParse results
    * @param {Object} metadata - { fileName, existingReports, allocatedBudget }
    * @returns {import('./models.js').Report[]}
@@ -987,7 +987,7 @@ export class CsvEngine {
         periodName: p.period.periodLabel,
         period: p.period,
         granularity: 'period',
-        granularityDescription: 'VS Hospitals KPI Cross-Tab pre-aggregated reporting period',
+        granularityDescription: 'CANIT Skope KPI Cross-Tab pre-aggregated reporting period',
         uploadedAt: new Date().toISOString(),
         sourceType: 'csv-crosstab',
         sourceFileName: fileName,
@@ -1052,7 +1052,7 @@ export class CsvEngine {
         const headers = parsed.data && parsed.data.length > 0 ? Object.keys(parsed.data[0]) : [];
         const format = this.detectCsvFormat(headers, parsed.data);
 
-        // Format: VS Hospitals KPI Cross-Tab
+        // Format: CANIT Skope KPI Cross-Tab
         if (format === this.FORMATS.CROSS_TAB) {
           const validation = this.validateCsv(parsed.data, headers, existingReports, fileName);
           if (!validation.isValid) {
@@ -1176,7 +1176,7 @@ export class CsvEngine {
     const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(this.getSampleCsvContent());
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', csvContent);
-    downloadAnchor.setAttribute('download', 'VS_Hospitals_Ads_Template.csv');
+    downloadAnchor.setAttribute('download', 'CANIT_Display_Ads_Template.csv');
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
