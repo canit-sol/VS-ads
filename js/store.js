@@ -70,15 +70,28 @@ export class ReportsJsonProvider {
         }
       }
     } catch (e) {
-      console.warn('Failed to fetch clients list:', e);
+      // Static hosting fallback
     }
-    return [
-      { clientId: 'nitin_wiers', name: 'nitin wiers', hasData: false },
-      { clientId: 'omnevum', name: 'omnevum', hasData: false },
-      { clientId: 'redbay', name: 'redbay', hasData: false },
-      { clientId: 'clf', name: 'clf', hasData: false },
-      { clientId: 'rps', name: 'rps', hasData: false }
+
+    const defaultClients = [
+      { clientId: 'nitin_wiers', name: 'nitin wiers' },
+      { clientId: 'omnevum', name: 'omnevum' },
+      { clientId: 'redbay', name: 'redbay' },
+      { clientId: 'clf', name: 'clf' },
+      { clientId: 'rps', name: 'rps' }
     ];
+
+    return defaultClients.map(c => {
+      const stored = safeStorage.getItem(`vs_ads_reports_client_${c.clientId}`);
+      let hasData = false;
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          hasData = Array.isArray(parsed) && parsed.length > 0;
+        } catch (e) {}
+      }
+      return { ...c, hasData };
+    });
   }
 
   async fetchReports(clientId = null) {
@@ -93,11 +106,13 @@ export class ReportsJsonProvider {
       }
     }
 
+    const cId = requestedClient || clientId || 'nitin_wiers';
+
     let url = `${this.apiEndpoint}?v=${Date.now()}`;
     if (token) {
       url += `&token=${encodeURIComponent(token)}`;
-    } else if (requestedClient) {
-      url += `&client=${encodeURIComponent(requestedClient)}`;
+    } else if (cId) {
+      url += `&client=${encodeURIComponent(cId)}`;
     }
 
     try {
@@ -109,17 +124,56 @@ export class ReportsJsonProvider {
             reports: Array.isArray(data.reports) ? data.reports : [],
             publishedAt: data.publishedAt || null,
             version: data.version || '1.0.0',
-            client: data.client || null
+            client: data.client || { clientId: cId, name: cId.replace(/_/g, ' ') }
           };
         }
-      } else if (res.status === 401 || res.status === 403) {
+      } else if (token && (res.status === 401 || res.status === 403)) {
         throw new Error('UNAUTHORIZED_TOKEN');
       }
     } catch (e) {
       if (e.message === 'UNAUTHORIZED_TOKEN') throw e;
     }
 
-    throw new Error('UNAUTHORIZED_TOKEN');
+    // Static hosting / offline fallback:
+    // Read from client-scoped localStorage
+    const cachedClientReports = safeStorage.getItem(`vs_ads_reports_client_${cId}`);
+    if (cachedClientReports) {
+      try {
+        const parsed = JSON.parse(cachedClientReports);
+        if (Array.isArray(parsed)) {
+          return {
+            reports: parsed,
+            publishedAt: null,
+            version: '1.0.0',
+            client: { clientId: cId, name: cId.replace(/_/g, ' ') }
+          };
+        }
+      } catch (e) {}
+    }
+
+    // If client is demo or vsh, attempt data/reports.json
+    if (cId === 'vsh' || cId === 'canit_demo') {
+      try {
+        const res = await fetch(this.endpoint + `?v=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          return {
+            reports: Array.isArray(data.reports) ? data.reports : [],
+            publishedAt: data.publishedAt || null,
+            version: data.version || '1.0.0',
+            client: { clientId: cId, name: cId.replace(/_/g, ' ') }
+          };
+        }
+      } catch (e) {}
+    }
+
+    // Return empty dataset for this client to show the clean Plain Workspace
+    return {
+      reports: [],
+      publishedAt: null,
+      version: '1.0.0',
+      client: { clientId: cId, name: cId.replace(/_/g, ' ') }
+    };
   }
 
   async saveReports(reports, clientId = null) {
@@ -347,7 +401,13 @@ class AdsStore {
   }
 
   saveReports() {
+    const cId = this.activeClient ? this.activeClient.clientId : 'default';
+    safeStorage.setItem(`vs_ads_reports_client_${cId}`, JSON.stringify(this.reports));
     safeStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(this.reports));
+    if (this.availableClients && this.availableClients.length) {
+      const match = this.availableClients.find(c => c.clientId === cId);
+      if (match) match.hasData = this.reports.length > 0;
+    }
   }
 
   saveRecommendations() {

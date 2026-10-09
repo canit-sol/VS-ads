@@ -259,8 +259,20 @@ class AppController {
     if (quickUploadBtn && !quickUploadBtn._bound) {
       quickUploadBtn._bound = true;
       quickUploadBtn.addEventListener('click', () => {
-        const fileInput = document.getElementById('plain-excel-file-input') || document.getElementById('csv-file-input');
-        if (fileInput) fileInput.click();
+        let fileInput = document.getElementById('plain-excel-file-input') || document.getElementById('csv-file-input');
+        if (!fileInput) {
+          fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.accept = '.csv,.xlsx,.xls,.tsv';
+          fileInput.className = 'hidden';
+          document.body.appendChild(fileInput);
+          fileInput.addEventListener('change', e => {
+            if (e.target.files && e.target.files.length > 0) {
+              this.processUploadedFileForClient(e.target.files[0]);
+            }
+          });
+        }
+        fileInput.click();
       });
     }
   }
@@ -380,13 +392,12 @@ class AppController {
       });
 
       if (savedCount > 0) {
-        await store.syncToLocalServer();
-        await store.loadClients();
+        if (store.isLocalServer) await store.syncToLocalServer();
         this.renderClientTabs();
         this.populateReportDropdowns();
         this.renderHeaderControls();
         this.renderContextRail();
-        this.renderActiveView();
+        this.switchView('overview');
         this.refreshIcons();
       } else {
         if (statusEl) {
