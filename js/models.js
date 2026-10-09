@@ -37,6 +37,8 @@
  * @property {number|null} cpa - Cost per conversion (₹) = spend / conversions
  * @property {number|null} costPerAllConv - Cost per all conversions (₹) = spend / allConversions
  * @property {number} conversionRate - Conversion rate (%) = (conversions / clicks) * 100
+ * @property {number} [revenue] - Ad-Attributed Revenue generated in INR (₹)
+ * @property {number|null} [roas] - Return on Ad Spend ratio = revenue / spend (e.g. 4.25)
  * @property {'strong'|'weak'|'moderate'} classification - Efficiency classification
  * @property {number} [rank] - Ordered efficiency rank
  * @property {string} [mainIssue] - Identified diagnosis or issue summary
@@ -87,6 +89,8 @@
  * @property {number|null} metrics.cpa
  * @property {number|null} metrics.costPerAllConv
  * @property {number} metrics.conversionRate
+ * @property {number} [metrics.revenue]
+ * @property {number|null} [metrics.roas]
  * @property {CampaignMetric[]} campaigns - Normalized campaign records
  * @property {ValidationResult} [validation] - Validation breakdown
  */

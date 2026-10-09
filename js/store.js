@@ -379,6 +379,7 @@ class AdsStore {
     let sourceResults = 0;
     let allConversions = 0;
     let budget = 0;
+    let revenue = 0;
 
     campaigns.forEach(c => {
       spend += (c.spend || 0);
@@ -390,6 +391,7 @@ class AdsStore {
       if (c.sourceResults) sourceResults += c.sourceResults;
       allConversions += (c.allConversions || 0);
       budget += (c.budget || 0);
+      revenue += (c.revenue || 0);
     });
 
     const cpc = clicks > 0 ? parseFloat((spend / clicks).toFixed(2)) : 0;
@@ -398,6 +400,7 @@ class AdsStore {
     const costPerResult = sourceResults > 0 ? parseFloat((spend / sourceResults).toFixed(2)) : null;
     const ctr = impressions > 0 ? parseFloat(((clicks / impressions) * 100).toFixed(2)) : 0;
     const conversionRate = clicks > 0 ? parseFloat(((conversions / clicks) * 100).toFixed(2)) : 0;
+    const roas = spend > 0 && revenue > 0 ? parseFloat((revenue / spend).toFixed(2)) : null;
     const finalBudget = budget > 0 ? budget : Math.round(spend * 1.35);
 
     return {
@@ -420,6 +423,8 @@ class AdsStore {
         phoneCalls,
         sourceResults,
         costPerResult,
+        revenue: Math.round(revenue),
+        roas,
         allConversions,
         allConversionsDerived: true,
         cpa,

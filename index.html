@@ -654,22 +654,30 @@
           </div>
 
           <!-- Print High-Level KPI Summary Ribbon -->
-          <div class="grid grid-cols-4 gap-3 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg p-3.5 mb-6" id="print-kpi-ribbon">
+          <div class="grid grid-cols-6 gap-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg p-3 mb-6" id="print-kpi-ribbon">
             <div>
-              <span class="text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">Total Spend</span>
-              <span class="text-sm font-bold text-[#0F172A]" id="print-kpi-spend">—</span>
+              <span class="text-[9px] uppercase tracking-wider text-[#64748B] font-bold block">Total Spend</span>
+              <span class="text-xs font-bold text-[#0F172A]" id="print-kpi-spend">—</span>
             </div>
             <div>
-              <span class="text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">Leads / Conversions</span>
-              <span class="text-sm font-bold text-[#0F172A]" id="print-kpi-conversions">—</span>
+              <span class="text-[9px] uppercase tracking-wider text-[#64748B] font-bold block">Ad-Attributed Revenue</span>
+              <span class="text-xs font-bold text-[#059669]" id="print-kpi-revenue">—</span>
             </div>
             <div>
-              <span class="text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">Blended CPA</span>
-              <span class="text-sm font-bold text-[#0F172A]" id="print-kpi-cpa">—</span>
+              <span class="text-[9px] uppercase tracking-wider text-[#64748B] font-bold block">Blended ROAS</span>
+              <span class="text-xs font-bold text-[#2563EB]" id="print-kpi-roas">—</span>
             </div>
             <div>
-              <span class="text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">Remaining Budget</span>
-              <span class="text-sm font-bold text-[#0F172A]" id="print-kpi-remaining">—</span>
+              <span class="text-[9px] uppercase tracking-wider text-[#64748B] font-bold block">Leads / Conv</span>
+              <span class="text-xs font-bold text-[#0F172A]" id="print-kpi-conversions">—</span>
+            </div>
+            <div>
+              <span class="text-[9px] uppercase tracking-wider text-[#64748B] font-bold block">Blended CPA</span>
+              <span class="text-xs font-bold text-[#0F172A]" id="print-kpi-cpa">—</span>
+            </div>
+            <div>
+              <span class="text-[9px] uppercase tracking-wider text-[#64748B] font-bold block">Remaining Budget</span>
+              <span class="text-xs font-bold text-[#0F172A]" id="print-kpi-remaining">—</span>
             </div>
           </div>
         </div>
@@ -923,6 +931,8 @@
                     <th class="py-3 px-4 text-right" data-sort-key="conversions">Conversions</th>
                     <th class="py-3 px-4 text-right" data-sort-key="phoneCalls">Calls</th>
                     <th class="py-3 px-4 text-right" data-sort-key="cpa">CPA</th>
+                    <th class="py-3 px-4 text-right" data-sort-key="revenue">Revenue</th>
+                    <th class="py-3 px-4 text-right" data-sort-key="roas">ROAS</th>
                     <th class="py-3 px-4" data-sort-key="classification">Status</th>
                   </tr>
                 </thead>

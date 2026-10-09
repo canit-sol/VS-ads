@@ -47,7 +47,9 @@
         "allConversionsDerived": true,
         "cpa": 1011,
         "costPerAllConv": 735,
-        "conversionRate": 1.07
+        "conversionRate": 1.07,
+        "revenue": 758931,
+        "roas": 3.97
       },
       "campaigns": [
         {
@@ -72,7 +74,9 @@
           "costPerAllConv": 815,
           "conversionRate": 1.97,
           "classification": "strong",
-          "notes": "Top performing direct intent search campaign with high conversion volume."
+          "notes": "Top performing direct intent search campaign with high conversion volume.",
+          "revenue": 249262,
+          "roas": 5.1
         },
         {
           "id": "demo_search_enterprise_2026_M09_W03",
@@ -96,7 +100,9 @@
           "costPerAllConv": 1354,
           "conversionRate": 2.1,
           "classification": "strong",
-          "notes": "Targeted search capturing enterprise decision makers."
+          "notes": "Targeted search capturing enterprise decision makers.",
+          "revenue": 127995,
+          "roas": 3.5
         },
         {
           "id": "demo_pmax_growth_2026_M09_W03",
@@ -120,7 +126,9 @@
           "costPerAllConv": 517,
           "conversionRate": 0.94,
           "classification": "strong",
-          "notes": "High-velocity omnichannel campaign delivering efficient cost-per-acquisition."
+          "notes": "High-velocity omnichannel campaign delivering efficient cost-per-acquisition.",
+          "revenue": 153755,
+          "roas": 3.5
         },
         {
           "id": "demo_meta_leadgen_2026_M09_W03",
@@ -144,7 +152,9 @@
           "costPerAllConv": 467,
           "conversionRate": 1.65,
           "classification": "strong",
-          "notes": "Meta retargeting ads driving high-intent demo requests."
+          "notes": "Meta retargeting ads driving high-intent demo requests.",
+          "revenue": 106260,
+          "roas": 3.5
         },
         {
           "id": "demo_meta_discovery_2026_M09_W03",
@@ -168,7 +178,9 @@
           "costPerAllConv": 1191,
           "conversionRate": 0.29,
           "classification": "strong",
-          "notes": "Broad social awareness driving brand discovery."
+          "notes": "Broad social awareness driving brand discovery.",
+          "revenue": 58363,
+          "roas": 3.5
         },
         {
           "id": "demo_youtube_video_2026_M09_W03",
@@ -192,7 +204,9 @@
           "costPerAllConv": 1636,
           "conversionRate": 0.4,
           "classification": "strong",
-          "notes": "Short explainer video ads explaining platform intelligence features."
+          "notes": "Short explainer video ads explaining platform intelligence features.",
+          "revenue": 63296,
+          "roas": 4.3
         }
       ]
     },
@@ -239,7 +253,9 @@
         "allConversionsDerived": true,
         "cpa": 1015,
         "costPerAllConv": 736,
-        "conversionRate": 1.07
+        "conversionRate": 1.07,
+        "revenue": 778534,
+        "roas": 4.46
       },
       "campaigns": [
         {
@@ -264,7 +280,9 @@
           "costPerAllConv": 811,
           "conversionRate": 1.98,
           "classification": "strong",
-          "notes": "Top performing direct intent search campaign with high conversion volume."
+          "notes": "Top performing direct intent search campaign with high conversion volume.",
+          "revenue": 191888,
+          "roas": 4.3
         },
         {
           "id": "demo_search_enterprise_2026_M09_W02",
@@ -288,7 +306,9 @@
           "costPerAllConv": 1336,
           "conversionRate": 2.13,
           "classification": "strong",
-          "notes": "Targeted search capturing enterprise decision makers."
+          "notes": "Targeted search capturing enterprise decision makers.",
+          "revenue": 170289,
+          "roas": 5.1
         },
         {
           "id": "demo_pmax_growth_2026_M09_W02",
@@ -312,7 +332,9 @@
           "costPerAllConv": 514,
           "conversionRate": 0.95,
           "classification": "strong",
-          "notes": "High-velocity omnichannel campaign delivering efficient cost-per-acquisition."
+          "notes": "High-velocity omnichannel campaign delivering efficient cost-per-acquisition.",
+          "revenue": 172473,
+          "roas": 4.3
         },
         {
           "id": "demo_meta_leadgen_2026_M09_W02",
@@ -336,7 +358,9 @@
           "costPerAllConv": 470,
           "conversionRate": 1.64,
           "classification": "strong",
-          "notes": "Meta retargeting ads driving high-intent demo requests."
+          "notes": "Meta retargeting ads driving high-intent demo requests.",
+          "revenue": 119196,
+          "roas": 4.3
         },
         {
           "id": "demo_meta_discovery_2026_M09_W02",
@@ -360,7 +384,9 @@
           "costPerAllConv": 1269,
           "conversionRate": 0.28,
           "classification": "strong",
-          "notes": "Broad social awareness driving brand discovery."
+          "notes": "Broad social awareness driving brand discovery.",
+          "revenue": 77648,
+          "roas": 5.1
         },
         {
           "id": "demo_youtube_video_2026_M09_W02",
@@ -384,7 +410,9 @@
           "costPerAllConv": 1680,
           "conversionRate": 0.38,
           "classification": "strong",
-          "notes": "Short explainer video ads explaining platform intelligence features."
+          "notes": "Short explainer video ads explaining platform intelligence features.",
+          "revenue": 47040,
+          "roas": 3.5
         }
       ]
     },
@@ -431,7 +459,9 @@
         "allConversionsDerived": true,
         "cpa": 1012,
         "costPerAllConv": 734,
-        "conversionRate": 1.07
+        "conversionRate": 1.07,
+        "revenue": 603688,
+        "roas": 3.82
       },
       "campaigns": [
         {
@@ -456,7 +486,9 @@
           "costPerAllConv": 824,
           "conversionRate": 1.95,
           "classification": "strong",
-          "notes": "Top performing direct intent search campaign with high conversion volume."
+          "notes": "Top performing direct intent search campaign with high conversion volume.",
+          "revenue": 141313,
+          "roas": 3.5
         },
         {
           "id": "demo_search_enterprise_2026_M09_W01",
@@ -480,7 +512,9 @@
           "costPerAllConv": 1313,
           "conversionRate": 2.16,
           "classification": "strong",
-          "notes": "Targeted search capturing enterprise decision makers."
+          "notes": "Targeted search capturing enterprise decision makers.",
+          "revenue": 105735,
+          "roas": 3.5
         },
         {
           "id": "demo_pmax_growth_2026_M09_W01",
@@ -504,7 +538,9 @@
           "costPerAllConv": 518,
           "conversionRate": 0.94,
           "classification": "strong",
-          "notes": "High-velocity omnichannel campaign delivering efficient cost-per-acquisition."
+          "notes": "High-velocity omnichannel campaign delivering efficient cost-per-acquisition.",
+          "revenue": 156047,
+          "roas": 4.3
         },
         {
           "id": "demo_meta_leadgen_2026_M09_W01",
@@ -528,7 +564,9 @@
           "costPerAllConv": 473,
           "conversionRate": 1.63,
           "classification": "strong",
-          "notes": "Meta retargeting ads driving high-intent demo requests."
+          "notes": "Meta retargeting ads driving high-intent demo requests.",
+          "revenue": 87780,
+          "roas": 3.5
         },
         {
           "id": "demo_meta_discovery_2026_M09_W01",
@@ -552,7 +590,9 @@
           "costPerAllConv": 1148,
           "conversionRate": 0.3,
           "classification": "strong",
-          "notes": "Broad social awareness driving brand discovery."
+          "notes": "Broad social awareness driving brand discovery.",
+          "revenue": 70253,
+          "roas": 5.1
         },
         {
           "id": "demo_youtube_video_2026_M09_W01",
@@ -576,7 +616,9 @@
           "costPerAllConv": 1520,
           "conversionRate": 0.43,
           "classification": "strong",
-          "notes": "Short explainer video ads explaining platform intelligence features."
+          "notes": "Short explainer video ads explaining platform intelligence features.",
+          "revenue": 42560,
+          "roas": 3.5
         }
       ]
     },
@@ -623,7 +665,9 @@
         "allConversionsDerived": true,
         "cpa": 1014,
         "costPerAllConv": 735,
-        "conversionRate": 1.07
+        "conversionRate": 1.07,
+        "revenue": 2545468,
+        "roas": 4.03
       },
       "campaigns": [
         {
@@ -648,7 +692,9 @@
           "costPerAllConv": 820,
           "conversionRate": 1.96,
           "classification": "strong",
-          "notes": "Top performing direct intent search campaign with high conversion volume."
+          "notes": "Top performing direct intent search campaign with high conversion volume.",
+          "revenue": 565250,
+          "roas": 3.5
         },
         {
           "id": "demo_search_enterprise_2026_M08_FULL",
@@ -672,7 +718,9 @@
           "costPerAllConv": 1328,
           "conversionRate": 2.14,
           "classification": "strong",
-          "notes": "Targeted search capturing enterprise decision makers."
+          "notes": "Targeted search capturing enterprise decision makers.",
+          "revenue": 519612,
+          "roas": 4.3
         },
         {
           "id": "demo_pmax_growth_2026_M08_FULL",
@@ -696,7 +744,9 @@
           "costPerAllConv": 515,
           "conversionRate": 0.95,
           "classification": "strong",
-          "notes": "High-velocity omnichannel campaign delivering efficient cost-per-acquisition."
+          "notes": "High-velocity omnichannel campaign delivering efficient cost-per-acquisition.",
+          "revenue": 508060,
+          "roas": 3.5
         },
         {
           "id": "demo_meta_leadgen_2026_M08_FULL",
@@ -720,7 +770,9 @@
           "costPerAllConv": 471,
           "conversionRate": 1.64,
           "classification": "strong",
-          "notes": "Meta retargeting ads driving high-intent demo requests."
+          "notes": "Meta retargeting ads driving high-intent demo requests.",
+          "revenue": 511632,
+          "roas": 5.1
         },
         {
           "id": "demo_meta_discovery_2026_M08_FULL",
@@ -744,7 +796,9 @@
           "costPerAllConv": 1224,
           "conversionRate": 0.29,
           "classification": "strong",
-          "notes": "Broad social awareness driving brand discovery."
+          "notes": "Broad social awareness driving brand discovery.",
+          "revenue": 192850,
+          "roas": 3.5
         },
         {
           "id": "demo_youtube_video_2026_M08_FULL",
@@ -768,7 +822,9 @@
           "costPerAllConv": 1569,
           "conversionRate": 0.41,
           "classification": "strong",
-          "notes": "Short explainer video ads explaining platform intelligence features."
+          "notes": "Short explainer video ads explaining platform intelligence features.",
+          "revenue": 248064,
+          "roas": 5.1
         }
       ]
     }

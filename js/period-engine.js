@@ -512,6 +512,7 @@ export class PeriodEngine {
       const leads = sanitizeNumberFn(row[columnMapping.leads]) || 0;
       const conversions = sanitizeNumberFn(row[columnMapping.conversions]) || 0;
       const phoneCalls = sanitizeNumberFn(row[columnMapping.phoneCalls]) || 0;
+      const revenue = columnMapping.revenue ? (sanitizeNumberFn(row[columnMapping.revenue]) || 0) : (sanitizeNumberFn(row.revenue) || 0);
       
       // Preserve explicit source All Conversions if provided
       const rawAllConv = columnMapping.allConversions ? sanitizeNumberFn(row[columnMapping.allConversions]) : null;
@@ -527,6 +528,7 @@ export class PeriodEngine {
           leads,
           conversions,
           phoneCalls,
+          revenue,
           allConversions: rawAllConv !== null ? rawAllConv : null,
           hasSourceAllConv: rawAllConv !== null,
           rowCount: 1
@@ -539,6 +541,7 @@ export class PeriodEngine {
         existing.leads += leads;
         existing.conversions += conversions;
         existing.phoneCalls += phoneCalls;
+        existing.revenue = (existing.revenue || 0) + revenue;
         if (rawAllConv !== null) {
           existing.allConversions = (existing.allConversions || 0) + rawAllConv;
           existing.hasSourceAllConv = true;
@@ -587,6 +590,7 @@ export class PeriodEngine {
     let aggConversions = 0;
     let aggPhoneCalls = 0;
     let aggAllConversions = 0;
+    let aggRevenue = 0;
     let hasSourceAllConvInAny = false;
 
     // Campaign aggregation map
@@ -599,6 +603,7 @@ export class PeriodEngine {
       aggLeads += (rep.metrics.leads || 0);
       aggConversions += (rep.metrics.conversions || 0);
       aggPhoneCalls += (rep.metrics.phoneCalls || 0);
+      aggRevenue += (rep.metrics.revenue || 0);
 
       if (rep.metrics.allConversions !== undefined && rep.metrics.allConversions !== null) {
         aggAllConversions += rep.metrics.allConversions;
@@ -624,6 +629,7 @@ export class PeriodEngine {
             leads: camp.leads || 0,
             conversions: camp.conversions || 0,
             phoneCalls: camp.phoneCalls || 0,
+            revenue: camp.revenue || 0,
             allConversions: camp.allConversions || (camp.conversions || 0),
             hasExplicitAllConv: camp.allConversions !== undefined && camp.allConversions !== null,
             notes: camp.notes || ''
@@ -636,6 +642,7 @@ export class PeriodEngine {
           item.leads += (camp.leads || 0);
           item.conversions += (camp.conversions || 0);
           item.phoneCalls += (camp.phoneCalls || 0);
+          item.revenue = (item.revenue || 0) + (camp.revenue || 0);
           if (camp.allConversions !== undefined && camp.allConversions !== null) {
             item.allConversions += camp.allConversions;
             item.hasExplicitAllConv = true;
@@ -660,6 +667,7 @@ export class PeriodEngine {
     const overallCpa = aggConversions > 0 ? Math.round(aggSpend / aggConversions) : null;
     const overallCostPerAllConv = aggAllConversions > 0 ? Math.round(aggSpend / aggAllConversions) : null;
     const overallConvRate = aggClicks > 0 ? parseFloat(((aggConversions / aggClicks) * 100).toFixed(2)) : 0;
+    const overallRoas = aggSpend > 0 && aggRevenue > 0 ? parseFloat((aggRevenue / aggSpend).toFixed(2)) : null;
 
     // Process campaign derived metrics and classifications
     const aggregatedCampaigns = Array.from(campaignMap.values()).map(c => {
@@ -668,6 +676,7 @@ export class PeriodEngine {
       const cCpa = c.conversions > 0 ? Math.round(c.spend / c.conversions) : null;
       const cCostPerAll = c.allConversions > 0 ? Math.round(c.spend / c.allConversions) : null;
       const cConvRate = c.clicks > 0 ? parseFloat(((c.conversions / c.clicks) * 100).toFixed(2)) : 0;
+      const cRoas = c.spend > 0 && c.revenue > 0 ? parseFloat((c.revenue / c.spend).toFixed(2)) : null;
 
       let classification = 'moderate';
       let mainIssue = '';
@@ -695,6 +704,8 @@ export class PeriodEngine {
         leads: c.leads,
         conversions: c.conversions,
         phoneCalls: c.phoneCalls,
+        revenue: Math.round(c.revenue || 0),
+        roas: cRoas,
         allConversions: c.allConversions,
         cpa: cCpa,
         costPerAllConv: cCostPerAll,
@@ -761,6 +772,8 @@ export class PeriodEngine {
         leads: aggLeads,
         conversions: aggConversions,
         phoneCalls: aggPhoneCalls,
+        revenue: Math.round(aggRevenue),
+        roas: overallRoas,
         allConversions: aggAllConversions,
         cpa: overallCpa,
         costPerAllConv: overallCostPerAllConv,

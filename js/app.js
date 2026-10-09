@@ -667,7 +667,7 @@ class AppController {
   }
 
   calcCampaignsMetrics(camps) {
-    let spend = 0, clicks = 0, impressions = 0, leads = 0, conversions = 0, phoneCalls = 0, sourceResults = 0;
+    let spend = 0, clicks = 0, impressions = 0, leads = 0, conversions = 0, phoneCalls = 0, sourceResults = 0, revenue = 0;
     camps.forEach(c => {
       spend += c.spend || 0;
       clicks += c.clicks || 0;
@@ -676,12 +676,14 @@ class AppController {
       conversions += c.conversions || 0;
       phoneCalls += c.phoneCalls || 0;
       if (c.sourceResults) sourceResults += c.sourceResults;
+      if (c.revenue) revenue += c.revenue;
     });
     const cpc = clicks > 0 ? parseFloat((spend / clicks).toFixed(2)) : 0;
     const cpa = conversions > 0 ? Math.round(spend / conversions) : (leads > 0 ? Math.round(spend / leads) : null);
     const ctr = impressions > 0 ? parseFloat(((clicks / impressions) * 100).toFixed(2)) : 0;
     const costPerResult = sourceResults > 0 ? parseFloat((spend / sourceResults).toFixed(2)) : null;
-    return { spend, clicks, impressions, leads, conversions, phoneCalls, sourceResults, cpc, cpa, ctr, costPerResult };
+    const roas = spend > 0 && revenue > 0 ? parseFloat((revenue / spend).toFixed(2)) : null;
+    return { spend, clicks, impressions, leads, conversions, phoneCalls, sourceResults, revenue, roas, cpc, cpa, ctr, costPerResult };
   }
 
   generateFullExecutiveDossierHtml() {
@@ -775,6 +777,18 @@ class AppController {
         }
       }
 
+      const roasVal = c.roas || (c.spend > 0 && c.revenue > 0 ? parseFloat((c.revenue / c.spend).toFixed(2)) : null);
+      let roasBadge = '<span style="color: #94A3B8;">—</span>';
+      if (roasVal !== null) {
+        if (roasVal >= 4.0) {
+          roasBadge = `<span class="dossier-badge-green" style="background: #D1FAE5 !important; color: #065F46 !important; border: 1px solid #6EE7B7 !important; padding: 1.5px 5px !important; border-radius: 3px !important; font-weight: 700 !important; font-size: 6.8pt !important;">${roasVal}x</span>`;
+        } else if (roasVal >= 2.0) {
+          roasBadge = `<span class="dossier-badge-google" style="background: #DBEAFE !important; color: #1D4ED8 !important; border: 1px solid #93C5FD !important; padding: 1.5px 5px !important; border-radius: 3px !important; font-weight: 700 !important; font-size: 6.8pt !important;">${roasVal}x</span>`;
+        } else {
+          roasBadge = `<span class="dossier-badge-amber" style="background: #FEF3C7 !important; color: #92400E !important; border: 1px solid #FCD34D !important; padding: 1.5px 5px !important; border-radius: 3px !important; font-weight: 700 !important; font-size: 6.8pt !important;">${roasVal}x</span>`;
+        }
+      }
+
       const rowBg = idx % 2 === 1 ? 'background: #F8FAFC !important;' : '';
 
       return `
@@ -786,9 +800,10 @@ class AppController {
           </td>
           <td style="text-align: center; padding: 4px 3px !important;">${netBadge}</td>
           <td style="text-align: right; font-weight: 700; color: #09090B !important; padding: 4px 4px !important;">${formatINR(c.spend || 0)}</td>
+          <td style="text-align: right; font-weight: 700; color: #059669 !important; padding: 4px 4px !important;">${c.revenue ? formatINR(c.revenue) : '—'}</td>
+          <td style="text-align: center; padding: 4px 3px !important;">${roasBadge}</td>
           <td style="text-align: right; color: #334155 !important; padding: 4px 3px !important;">${formatNumber(c.clicks || 0)}</td>
           <td style="text-align: right; color: #334155 !important; padding: 4px 3px !important;">${c.cpc ? formatINR(c.cpc) : '—'}</td>
-          <td style="text-align: right; color: #334155 !important; padding: 4px 3px !important;">${c.ctr ? formatPercent(c.ctr) : '—'}</td>
           <td style="text-align: right; font-weight: 800; color: ${leadsVal > 0 ? '#059669' : '#94A3B8'} !important; padding: 4px 3px !important;">${formatNumber(leadsVal)}</td>
           <td style="text-align: right; color: ${callsVal > 0 ? '#059669' : '#94A3B8'} !important; padding: 4px 3px !important;">${callsVal}</td>
           <td style="text-align: right; padding: 4px 4px !important;">${cpaBadge}</td>
@@ -826,6 +841,16 @@ class AppController {
                 <span style="font-size: 6.5pt; color: #475569; font-weight: 500;">Run-rate: ${formatINR(dailyRate)}/day</span>
               </div>
               <div class="dossier-card dossier-card-neutral" style="padding: 10px 12px;">
+                <span style="font-size: 7pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Ad-Attributed Revenue</span>
+                <span style="font-size: 13pt; font-weight: 800; color: #059669; display: block; margin-top: 2px;">${tM.revenue > 0 ? formatINR(tM.revenue) : '—'}</span>
+                <span style="font-size: 6.5pt; color: #059669; font-weight: 600;">Total Purchase Value</span>
+              </div>
+              <div class="dossier-card dossier-card-neutral" style="padding: 10px 12px;">
+                <span style="font-size: 7pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Blended ROAS</span>
+                <span style="font-size: 13pt; font-weight: 800; color: #2563EB; display: block; margin-top: 2px;">${tM.roas ? `${tM.roas}x` : '—'}</span>
+                <span style="font-size: 6.5pt; color: #2563EB; font-weight: 600;">Revenue / Ad Spend</span>
+              </div>
+              <div class="dossier-card dossier-card-neutral" style="padding: 10px 12px;">
                 <span style="font-size: 7pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Leads / Conversions</span>
                 <span style="font-size: 13pt; font-weight: 800; color: #09090B; display: block; margin-top: 2px;">${formatNumber(totalClientInquiries)}</span>
                 <span style="font-size: 6.5pt; color: #059669; font-weight: 600;">${formatNumber(gConvOrLeads)} Google + ${formatNumber(mResults)} Meta</span>
@@ -833,17 +858,7 @@ class AppController {
               <div class="dossier-card dossier-card-neutral" style="padding: 10px 12px;">
                 <span style="font-size: 7pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Blended CPA</span>
                 <span style="font-size: 13pt; font-weight: 800; color: #09090B; display: block; margin-top: 2px;">${blendedCpa ? formatINR(blendedCpa) : '—'}</span>
-                <span style="font-size: 6.5pt; color: #475569; font-weight: 500;">Per verified lead/inquiry</span>
-              </div>
-              <div class="dossier-card dossier-card-neutral" style="padding: 10px 12px;">
-                <span style="font-size: 7pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Total Clicks</span>
-                <span style="font-size: 13pt; font-weight: 800; color: #09090B; display: block; margin-top: 2px;">${formatNumber(totalClicks)}</span>
-                <span style="font-size: 6.5pt; color: #475569; font-weight: 500;">Avg CTR: ${formatPercent(totalCtr)}</span>
-              </div>
-              <div class="dossier-card dossier-card-neutral" style="padding: 10px 12px;">
-                <span style="font-size: 7pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Average CPC</span>
-                <span style="font-size: 13pt; font-weight: 800; color: #09090B; display: block; margin-top: 2px;">${formatINR(totalCpc)}</span>
-                <span style="font-size: 6.5pt; color: #475569; font-weight: 500;">Cost per visitor</span>
+                <span style="font-size: 6.5pt; color: #475569; font-weight: 500;">Per verified inquiry</span>
               </div>
               <div class="dossier-card dossier-card-neutral" style="padding: 10px 12px; border-left: 3px solid #2563EB !important;">
                 <span style="font-size: 7pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Sprint Health Score</span>
@@ -877,24 +892,24 @@ class AppController {
                     <span style="font-size: 11pt; font-weight: 800; color: #1E40AF;">${formatINR(gM.spend)}</span>
                   </div>
                   <div>
+                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Revenue</span>
+                    <span style="font-size: 11pt; font-weight: 800; color: #059669;">${gM.revenue ? formatINR(gM.revenue) : '—'}</span>
+                  </div>
+                  <div>
+                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">ROAS</span>
+                    <span style="font-size: 11pt; font-weight: 800; color: #2563EB;">${gM.roas ? `${gM.roas}x` : '—'}</span>
+                  </div>
+                  <div>
                     <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Conversions / Leads</span>
-                    <span style="font-size: 11pt; font-weight: 800; color: #059669;">${formatNumber(gConvOrLeads)}</span>
+                    <span style="font-size: 9.5pt; font-weight: 700; color: #0F172A;">${formatNumber(gConvOrLeads)}</span>
                   </div>
                   <div>
                     <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">CPA</span>
-                    <span style="font-size: 11pt; font-weight: 800; color: #1E40AF;">${gM.cpa ? formatINR(gM.cpa) : '—'}</span>
+                    <span style="font-size: 9.5pt; font-weight: 700; color: #1E40AF;">${gM.cpa ? formatINR(gM.cpa) : '—'}</span>
                   </div>
                   <div>
-                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Clicks / Traffic</span>
-                    <span style="font-size: 9.5pt; font-weight: 700; color: #0F172A;">${formatNumber(gM.clicks)}</span>
-                  </div>
-                  <div>
-                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Average CPC</span>
-                    <span style="font-size: 9.5pt; font-weight: 700; color: #0F172A;">${formatINR(gM.cpc)}</span>
-                  </div>
-                  <div>
-                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Direct Calls</span>
-                    <span style="font-size: 9.5pt; font-weight: 700; color: #059669;">${formatNumber(gM.phoneCalls)} calls</span>
+                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Clicks / CPC</span>
+                    <span style="font-size: 9.5pt; font-weight: 700; color: #0F172A;">${formatNumber(gM.clicks)} (${formatINR(gM.cpc)})</span>
                   </div>
                 </div>
 
@@ -919,24 +934,24 @@ class AppController {
                     <span style="font-size: 11pt; font-weight: 800; color: #6D28D9;">${formatINR(mM.spend)}</span>
                   </div>
                   <div>
+                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Revenue</span>
+                    <span style="font-size: 11pt; font-weight: 800; color: #059669;">${mM.revenue ? formatINR(mM.revenue) : '—'}</span>
+                  </div>
+                  <div>
+                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">ROAS</span>
+                    <span style="font-size: 11pt; font-weight: 800; color: #7C3AED;">${mM.roas ? `${mM.roas}x` : '—'}</span>
+                  </div>
+                  <div>
                     <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Total Results</span>
-                    <span style="font-size: 11pt; font-weight: 800; color: #5B21B6;">${formatNumber(mM.sourceResults)}</span>
+                    <span style="font-size: 9.5pt; font-weight: 700; color: #0F172A;">${formatNumber(mM.sourceResults)}</span>
                   </div>
                   <div>
                     <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Cost / Result</span>
-                    <span style="font-size: 11pt; font-weight: 800; color: #059669;">${mM.costPerResult ? formatINR(mM.costPerResult) : '—'}</span>
+                    <span style="font-size: 9.5pt; font-weight: 700; color: #059669;">${mM.costPerResult ? formatINR(mM.costPerResult) : '—'}</span>
                   </div>
                   <div>
-                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Clicks / Traffic</span>
-                    <span style="font-size: 9.5pt; font-weight: 700; color: #0F172A;">${formatNumber(mM.clicks)}</span>
-                  </div>
-                  <div>
-                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Average CPC</span>
-                    <span style="font-size: 9.5pt; font-weight: 700; color: #0F172A;">${formatINR(mM.cpc)}</span>
-                  </div>
-                  <div>
-                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Platform Leads</span>
-                    <span style="font-size: 9.5pt; font-weight: 700; color: #7C3AED;">${formatNumber(mM.leads)} leads</span>
+                    <span style="font-size: 6.8pt; color: #64748B; font-weight: 600; text-transform: uppercase; display: block;">Clicks / CPC</span>
+                    <span style="font-size: 9.5pt; font-weight: 700; color: #0F172A;">${formatNumber(mM.clicks)} (${formatINR(mM.cpc)})</span>
                   </div>
                 </div>
 
@@ -1031,16 +1046,17 @@ class AppController {
             <table class="dossier-table" style="width: 100%; border-collapse: collapse;">
               <thead>
                 <tr style="background: #F1F5F9 !important; border-bottom: 2px solid #0F172A !important;">
-                  <th style="width: 4%; text-align: center; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">#</th>
-                  <th style="width: 32%; text-align: left; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 4px !important; text-transform: uppercase !important;">Campaign Name</th>
-                  <th style="width: 10%; text-align: center; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">Network</th>
-                  <th style="width: 11%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 4px !important; text-transform: uppercase !important;">Spend</th>
-                  <th style="width: 7%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">Clicks</th>
-                  <th style="width: 7%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">CPC</th>
-                  <th style="width: 6%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">CTR</th>
-                  <th style="width: 7%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">Leads</th>
+                  <th style="width: 3%; text-align: center; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">#</th>
+                  <th style="width: 25%; text-align: left; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 4px !important; text-transform: uppercase !important;">Campaign Name</th>
+                  <th style="width: 8%; text-align: center; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">Network</th>
+                  <th style="width: 10%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 4px !important; text-transform: uppercase !important;">Spend</th>
+                  <th style="width: 10%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 4px !important; text-transform: uppercase !important;">Revenue</th>
+                  <th style="width: 7%; text-align: center; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">ROAS</th>
+                  <th style="width: 6%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">Clicks</th>
+                  <th style="width: 6%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">CPC</th>
+                  <th style="width: 6%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">Leads</th>
                   <th style="width: 5%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 3px !important; text-transform: uppercase !important;">Calls</th>
-                  <th style="width: 11%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 4px !important; text-transform: uppercase !important;">CPA</th>
+                  <th style="width: 10%; text-align: right; color: #0F172A !important; background: #F1F5F9 !important; font-weight: 800 !important; font-size: 7.2pt !important; padding: 5px 4px !important; text-transform: uppercase !important;">CPA</th>
                 </tr>
               </thead>
               <tbody>
@@ -1048,11 +1064,12 @@ class AppController {
               </tbody>
               <tfoot>
                 <tr style="background: #0F172A; color: #FFFFFF; font-weight: 800; font-size: 7.2pt;">
-                  <td style="text-align: center; color: #FFFFFF;" colspan="3">CONSOLIDATED PORTFOLIO TOTAL (21 CAMPAIGNS)</td>
+                  <td style="text-align: center; color: #FFFFFF;" colspan="3">CONSOLIDATED PORTFOLIO TOTAL (${allCamps.length} CAMPAIGNS)</td>
                   <td style="text-align: right; color: #FFFFFF;">${formatINR(totalSpend)}</td>
+                  <td style="text-align: right; color: #34D399;">${tM.revenue > 0 ? formatINR(tM.revenue) : '—'}</td>
+                  <td style="text-align: center; color: #60A5FA;">${tM.roas ? `${tM.roas}x` : '—'}</td>
                   <td style="text-align: right; color: #FFFFFF;">${formatNumber(totalClicks)}</td>
                   <td style="text-align: right; color: #FFFFFF;">${formatINR(totalCpc)}</td>
-                  <td style="text-align: right; color: #FFFFFF;">${formatPercent(totalCtr)}</td>
                   <td style="text-align: right; color: #34D399;">${formatNumber(totalLeads)}</td>
                   <td style="text-align: right; color: #FFFFFF;">${formatNumber(totalCalls)}</td>
                   <td style="text-align: right; color: #60A5FA;">${blendedCpa ? formatINR(blendedCpa) : '—'}</td>
@@ -1394,6 +1411,15 @@ class AppController {
 
     const spendEl = document.getElementById('print-kpi-spend');
     if (spendEl) spendEl.textContent = formatINR(b.spent || m.spend || 0);
+
+    const revEl = document.getElementById('print-kpi-revenue');
+    if (revEl) revEl.textContent = m.revenue ? formatINR(m.revenue) : '—';
+
+    const roasEl = document.getElementById('print-kpi-roas');
+    if (roasEl) {
+      const roasVal = m.roas ? `${m.roas}x` : ((b.spent || m.spend) > 0 && m.revenue > 0 ? `${(m.revenue / (b.spent || m.spend)).toFixed(2)}x` : '—');
+      roasEl.textContent = roasVal;
+    }
 
     const convEl = document.getElementById('print-kpi-conversions');
     if (convEl) {
@@ -1771,7 +1797,10 @@ class AppController {
     if (budgetProgress) budgetProgress.style.width = `${Math.min(b.spendRatePercent, 100)}%`;
     if (budgetSubtext) budgetSubtext.textContent = b.dailyRunRate ? `${formatINR(b.dailyRunRate)}/day run-rate` : 'Run-rate tracking';
 
-    // 2. Unified KPI Metrics Band (8 metrics separated by interior dividers)
+    // 2. Unified KPI Metrics Band (Metrics separated by interior dividers)
+    const roasDisplay = m.roas ? `${m.roas}x` : ((b.spent || m.spend) > 0 && m.revenue > 0 ? `${(m.revenue / (b.spent || m.spend)).toFixed(2)}x` : '—');
+    const compRoas = comp && (comp.metrics.roas || (comp.budgetSummary.spent > 0 && comp.metrics.revenue > 0 ? parseFloat((comp.metrics.revenue / comp.budgetSummary.spent).toFixed(2)) : null));
+
     const kpiData = [
       {
         label: 'Total Spend',
@@ -1779,6 +1808,38 @@ class AppController {
         sub: `of ${formatINR(b.allocated, true)} budget`,
         delta: comp && comp.budgetSummary.spent ? `${(((b.spent - comp.budgetSummary.spent) / comp.budgetSummary.spent) * 100).toFixed(1)}%` : null,
         isPositive: false
+      },
+      {
+        label: 'Ad-Attributed Revenue',
+        val: m.revenue ? formatINR(m.revenue) : '—',
+        sub: 'Direct purchase value',
+        delta: comp && comp.metrics.revenue && m.revenue ? `${(((m.revenue - comp.metrics.revenue) / comp.metrics.revenue) * 100).toFixed(1)}%` : null,
+        isPositive: true,
+        highlight: true
+      },
+      {
+        label: 'Blended ROAS',
+        val: roasDisplay,
+        sub: 'Revenue / Ad spend',
+        delta: compRoas && m.roas ? `${(m.roas - compRoas >= 0 ? '+' : '')}${(m.roas - compRoas).toFixed(2)}x` : null,
+        isPositive: true,
+        highlight: true
+      },
+      {
+        label: activePlatform === 'meta' ? 'Meta Results' : 'Recorded Conversions',
+        val: activePlatform === 'meta' ? formatNumber(m.sourceResults || 0) : m.conversions,
+        sub: activePlatform === 'meta' ? (m.costPerResult ? `₹${m.costPerResult} cost / result` : 'Platform reported') : `${m.conversionRate}% conv rate`,
+        delta: comp ? (activePlatform === 'meta' ? null : `${m.conversions >= comp.metrics.conversions ? '+' : ''}${m.conversions - comp.metrics.conversions}`) : null,
+        isPositive: true,
+        highlight: true
+      },
+      {
+        label: activePlatform === 'meta' ? 'Cost / Result (CPR)' : 'Cost / Conversion (CPA)',
+        val: activePlatform === 'meta' ? (m.costPerResult ? formatINR(m.costPerResult) : '—') : (m.cpa ? formatINR(m.cpa) : 'None (0 conv)'),
+        sub: activePlatform === 'meta' ? 'Meta reported CPR' : 'Target ₹3,000',
+        delta: comp && comp.metrics.cpa ? `${(((m.cpa - comp.metrics.cpa) / comp.metrics.cpa) * 100).toFixed(1)}%` : null,
+        isPositive: false,
+        highlight: true
       },
       {
         label: 'Impressions',
@@ -1800,22 +1861,6 @@ class AppController {
         sub: 'Cost per ad click',
         delta: comp && comp.metrics.cpc ? `${(((m.cpc - comp.metrics.cpc) / comp.metrics.cpc) * 100).toFixed(1)}%` : null,
         isPositive: false
-      },
-      {
-        label: activePlatform === 'meta' ? 'Meta Results' : 'Recorded Conversions',
-        val: activePlatform === 'meta' ? formatNumber(m.sourceResults || 0) : m.conversions,
-        sub: activePlatform === 'meta' ? (m.costPerResult ? `₹${m.costPerResult} cost / result` : 'Platform reported') : `${m.conversionRate}% conv rate`,
-        delta: comp ? (activePlatform === 'meta' ? null : `${m.conversions >= comp.metrics.conversions ? '+' : ''}${m.conversions - comp.metrics.conversions}`) : null,
-        isPositive: true,
-        highlight: true
-      },
-      {
-        label: activePlatform === 'meta' ? 'Cost / Result (CPR)' : 'Cost / Conversion (CPA)',
-        val: activePlatform === 'meta' ? (m.costPerResult ? formatINR(m.costPerResult) : '—') : (m.cpa ? formatINR(m.cpa) : 'None (0 conv)'),
-        sub: activePlatform === 'meta' ? 'Meta reported CPR' : 'Target ₹3,000',
-        delta: comp && comp.metrics.cpa ? `${(((m.cpa - comp.metrics.cpa) / comp.metrics.cpa) * 100).toFixed(1)}%` : null,
-        isPositive: false,
-        highlight: true
       },
       {
         label: store.activeClient?.terminology?.leads || 'Leads',
@@ -1864,6 +1909,9 @@ class AppController {
         const gMetrics = gRep ? gRep.metrics : null;
         const mMetrics = mRep ? mRep.metrics : null;
 
+        const gRoas = gMetrics && (gMetrics.roas ? `${gMetrics.roas}x` : (gMetrics.spend > 0 && gMetrics.revenue > 0 ? `${(gMetrics.revenue / gMetrics.spend).toFixed(2)}x` : '—'));
+        const mRoas = mMetrics && (mMetrics.roas ? `${mMetrics.roas}x` : (mMetrics.spend > 0 && mMetrics.revenue > 0 ? `${(mMetrics.revenue / mMetrics.spend).toFixed(2)}x` : '—'));
+
         const compCards = document.getElementById('overview-platform-comparison-cards');
         if (compCards) {
           compCards.innerHTML = `
@@ -1882,6 +1930,14 @@ class AppController {
                   <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatINR(gMetrics.spend) : '₹0'}</div>
                 </div>
                 <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Revenue</span>
+                  <div class="text-sm font-semibold text-emerald-400 mt-0.5">${gMetrics && gMetrics.revenue ? formatINR(gMetrics.revenue) : '—'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">ROAS</span>
+                  <div class="text-sm font-semibold text-white mt-0.5">${gRoas || '—'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
                   <span class="text-[10px] text-[#737373] block">Clicks</span>
                   <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatNumber(gMetrics.clicks) : '0'}</div>
                 </div>
@@ -1890,16 +1946,20 @@ class AppController {
                   <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatINR(gMetrics.cpc) : '₹0'}</div>
                 </div>
                 <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Conversions</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatNumber(gMetrics.conversions) : '0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">CPA</span>
+                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics && gMetrics.cpa ? formatINR(gMetrics.cpa) : '—'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
                   <span class="text-[10px] text-[#737373] block">Leads</span>
                   <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatNumber(gMetrics.leads) : '0'}</div>
                 </div>
                 <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
                   <span class="text-[10px] text-[#737373] block">Phone Calls</span>
                   <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatNumber(gMetrics.phoneCalls) : '0'}</div>
-                </div>
-                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
-                  <span class="text-[10px] text-[#737373] block">Conversions</span>
-                  <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${gMetrics ? formatNumber(gMetrics.conversions) : '0'}</div>
                 </div>
               </div>
             </div>
@@ -1917,6 +1977,14 @@ class AppController {
                 <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
                   <span class="text-[10px] text-[#737373] block">Spend</span>
                   <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${mMetrics ? formatINR(mMetrics.spend) : '₹0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Revenue</span>
+                  <div class="text-sm font-semibold text-emerald-400 mt-0.5">${mMetrics && mMetrics.revenue ? formatINR(mMetrics.revenue) : '—'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">ROAS</span>
+                  <div class="text-sm font-semibold text-white mt-0.5">${mRoas || '—'}</div>
                 </div>
                 <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
                   <span class="text-[10px] text-[#737373] block">Clicks</span>
@@ -1937,6 +2005,10 @@ class AppController {
                 <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
                   <span class="text-[10px] text-[#737373] block">Leads</span>
                   <div class="text-sm font-semibold text-[#F5F5F5] mt-0.5">${mMetrics ? formatNumber(mMetrics.leads) : '0'}</div>
+                </div>
+                <div class="bg-[#171717] p-3 rounded-lg border border-white/[0.08]">
+                  <span class="text-[10px] text-[#737373] block">Channel Focus</span>
+                  <div class="text-sm font-semibold text-[#A3A3A3] mt-0.5">Social & Discovery</div>
                 </div>
               </div>
             </div>
@@ -2109,8 +2181,8 @@ class AppController {
     campaigns.sort((a, b) => {
       let valA = a[store.campaignSortKey];
       let valB = b[store.campaignSortKey];
-      if (valA === null) valA = store.campaignSortAsc ? 999999 : -1;
-      if (valB === null) valB = store.campaignSortAsc ? 999999 : -1;
+      if (valA === undefined || valA === null) valA = store.campaignSortAsc ? 999999999 : -1;
+      if (valB === undefined || valB === null) valB = store.campaignSortAsc ? 999999999 : -1;
       if (typeof valA === 'string') {
         return store.campaignSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
       }
@@ -2140,6 +2212,7 @@ class AppController {
         const plat = (c.platform || '').toLowerCase();
         const platDisplay = plat === 'google' ? 'Google Ads' : (plat === 'meta' ? 'Meta Ads' : 'Unknown');
         const platColorClass = plat === 'google' ? 'text-white' : (plat === 'meta' ? 'text-[#D4D4D4]' : 'text-[#737373]');
+        const roasVal = c.roas || (c.spend > 0 && c.revenue > 0 ? parseFloat((c.revenue / c.spend).toFixed(2)) : null);
 
         return `
         <tr class="hover:bg-[#171717] transition border-b border-white/[0.06]">
@@ -2171,6 +2244,14 @@ class AppController {
             c.cpa === null ? 'text-[#737373]' : (c.cpa <= 5000 ? 'text-white' : 'text-[#A3A3A3]')
           }">
             ${c.cpa === null ? 'None (0 conv)' : formatINR(c.cpa)}
+          </td>
+          <td class="py-3 px-4 text-right text-xs font-medium whitespace-nowrap text-emerald-400">
+            ${c.revenue ? formatINR(c.revenue) : '—'}
+          </td>
+          <td class="py-3 px-4 text-right text-xs whitespace-nowrap font-semibold ${
+            roasVal === null ? 'text-[#737373]' : (roasVal >= 4.0 ? 'text-emerald-400' : (roasVal >= 2.0 ? 'text-white' : 'text-amber-400'))
+          }">
+            ${roasVal !== null ? `${roasVal}x` : '—'}
           </td>
           <td class="py-3 px-4 whitespace-nowrap">
             ${c.classification === 'strong' ? `

@@ -23,7 +23,9 @@ export class CsvEngine {
     allConversions: ['all conv', 'all conversions', 'all conv.'],
     budget: ['allocated budget', 'allocated', 'budget'],
     cpl: ['cpl', 'cost per lead'],
-    cpr: ['cpr', 'cost per result', 'cost per 1,000 impressions (cpm)']
+    cpr: ['cpr', 'cost per result', 'cost per 1,000 impressions (cpm)'],
+    revenue: ['conversion value', 'conv value', 'conv. value', 'revenue', 'purchase value', 'total conversion value', 'total conv value', 'sales', 'ad-attributed revenue', 'ad attributed revenue'],
+    roas: ['roas', 'conv. value / cost', 'conv value / cost', 'return on ad spend', 'conversion value / cost', 'roas (return on ad spend)']
   };
 
   static COLUMN_SYNONYMS = {
@@ -39,6 +41,8 @@ export class CsvEngine {
     allConversions: ['all conv', 'all conv.', 'all conversions', 'total conv', 'total conversions', 'all_conversions', 'all conv (recorded)', 'all conversion'],
     cpa: ['cpa', 'cost / conv', 'cost per conversion', 'cost per acquisition', 'cost / conv.', 'cost per result', 'cost / result', 'cpr', 'cost per conv'],
     costPerAllConv: ['cost / all conv', 'cost / all conv.', 'cost per all conv', 'cost per all conversion'],
+    revenue: ['conversion value', 'conv. value', 'conv value', 'total conv value', 'total conversion value', 'all conv. value', 'all conv value', 'revenue', 'purchase value', 'purchase conversion value', 'sales', 'ad-attributed revenue', 'ad attributed revenue', 'total sales', 'order value', 'value'],
+    roas: ['roas', 'return on ad spend', 'conv. value / cost', 'conv value / cost', 'conversion value / cost', 'all conv. value / cost', 'purchase roas', 'roas (return on ad spend)'],
     specialty: ['specialty', 'location', 'specialty / loc', 'service', 'department', 'centre', 'center'],
     channel: ['channel', 'type', 'campaign type', 'strategy', 'advertising channel'],
     platform: ['platform', 'advertising platform', 'ad platform', 'network', 'publisher', 'source'],
@@ -46,15 +50,16 @@ export class CsvEngine {
   };
 
   static NEGATIVE_EXCLUSIONS = {
-    spend: ['cpc', 'cpa', 'cpl', 'cpm', '/', 'per conv', 'per click', 'per result', 'rate', 'avg'],
+    spend: ['cpc', 'cpa', 'cpl', 'cpm', '/', 'per conv', 'per click', 'per result', 'rate', 'avg', 'roas', 'return'],
     impressions: ['cpm', 'share', 'rate', '%', 'lost'],
     clicks: ['cpc', 'cost', 'rate', 'ctr', '%', '/', 'per click'],
     cpc: ['ctr', '%', 'conversions', 'impressions'],
     ctr: ['cpc', 'cpa', 'spend', 'cost'],
     leads: ['cpl', 'cost', 'rate', '%', '/', 'cost per lead'],
-    conversions: ['cost', 'cpa', 'rate', '%', '/', 'cost / conv', 'cost per conv', 'conv. rate', 'cost per result'],
+    conversions: ['cost', 'cpa', 'rate', '%', '/', 'cost / conv', 'cost per conv', 'conv. rate', 'cost per result', 'conv. value', 'value', 'revenue'],
     phoneCalls: ['impression', 'ptr', '%'],
-    cpa: ['cpc', 'ctr', '%']
+    cpa: ['cpc', 'ctr', '%'],
+    revenue: ['/', 'per', 'rate', 'cpc', 'cpa', 'cpr', '%', 'cost']
   };
 
   /**
@@ -521,6 +526,7 @@ export class CsvEngine {
     let aggConversions = 0;
     let aggPhoneCalls = 0;
     let aggAllConversions = 0;
+    let aggRevenue = 0;
     let hasExplicitAllConvAny = false;
 
     rowsToProcess.forEach((row, idx) => {
@@ -536,6 +542,15 @@ export class CsvEngine {
       const phoneCalls = this.sanitizeNumber(row[mapping.phoneCalls]) || 0;
       let cpa = mapping.cpa && row[mapping.cpa] !== undefined ? this.sanitizeNumber(row[mapping.cpa], null) : null;
       let costPerAllConv = mapping.costPerAllConv && row[mapping.costPerAllConv] !== undefined ? this.sanitizeNumber(row[mapping.costPerAllConv], null) : null;
+
+      // Revenue & ROAS handling
+      let revenue = mapping.revenue && row[mapping.revenue] !== undefined ? (this.sanitizeNumber(row[mapping.revenue]) || 0) : (row.revenue !== undefined ? (this.sanitizeNumber(row.revenue) || 0) : 0);
+      let roas = mapping.roas && row[mapping.roas] !== undefined ? this.sanitizeNumber(row[mapping.roas], null) : null;
+      if (spend > 0 && revenue > 0) {
+        roas = parseFloat((revenue / spend).toFixed(2));
+      } else if (roas !== null && roas > 0 && revenue === 0 && spend > 0) {
+        revenue = Math.round(spend * roas);
+      }
 
       // CRITICAL DATA INTEGRITY (USER REQUIREMENT):
       // 1. Never assume allConversions = conversions + phoneCalls.
@@ -654,6 +669,7 @@ export class CsvEngine {
       aggConversions += conversions;
       aggPhoneCalls += phoneCalls;
       aggAllConversions += allConversions;
+      aggRevenue += revenue;
 
       campaigns.push({
         id: 'camp_csv_' + idx + '_' + Math.random().toString(36).substr(2, 4),
@@ -669,6 +685,8 @@ export class CsvEngine {
         leads,
         conversions,
         phoneCalls,
+        revenue: Math.round(revenue),
+        roas,
         allConversions,
         allConversionsDerived,
         cpa,
@@ -694,6 +712,7 @@ export class CsvEngine {
     const overallCpa = aggConversions > 0 ? Math.round(aggSpend / aggConversions) : null;
     const overallCostPerAllConv = aggAllConversions > 0 ? Math.round(aggSpend / aggAllConversions) : null;
     const conversionRate = aggClicks > 0 ? parseFloat(((aggConversions / aggClicks) * 100).toFixed(2)) : 0;
+    const overallRoas = aggSpend > 0 && aggRevenue > 0 ? parseFloat((aggRevenue / aggSpend).toFixed(2)) : null;
 
     const reportId = 'vs_rep_' + period.periodId;
     const allocatedBudget = metadata.allocatedBudget || (aggSpend * 1.35);
@@ -724,6 +743,8 @@ export class CsvEngine {
         leads: aggLeads,
         conversions: aggConversions,
         phoneCalls: aggPhoneCalls,
+        revenue: Math.round(aggRevenue),
+        roas: overallRoas,
         allConversions: aggAllConversions,
         allConversionsDerived: !hasExplicitAllConvAny,
         allConversionsNote: hasExplicitAllConvAny
@@ -893,6 +914,7 @@ export class CsvEngine {
       let aggResults = 0;
       let aggAllConversions = 0;
       let aggBudget = 0;
+      let aggRevenue = 0;
 
       campaignEntries.forEach((c, idx) => {
         const m = c.metrics;
@@ -904,6 +926,14 @@ export class CsvEngine {
         const sourceResults = m.sourceResults !== undefined ? m.sourceResults : null;
         const conversions = m.conversions || 0;
         const budget = m.budget || 0;
+        let revenue = m.revenue || 0;
+        let roas = m.roas !== undefined ? m.roas : null;
+
+        if (spend > 0 && revenue > 0) {
+          roas = parseFloat((revenue / spend).toFixed(2));
+        } else if (roas !== null && roas > 0 && revenue === 0 && spend > 0) {
+          revenue = Math.round(spend * roas);
+        }
 
         // Skip campaign if completely inactive in this period
         if (spend === 0 && clicks === 0 && leads === 0 && phoneCalls === 0 && budget === 0 && (!sourceResults || sourceResults === 0)) {
@@ -944,6 +974,7 @@ export class CsvEngine {
         if (sourceResults) aggResults += sourceResults;
         aggAllConversions += allConversions;
         aggBudget += budget;
+        aggRevenue += revenue;
 
         campaigns.push({
           id: c.id,
@@ -961,6 +992,8 @@ export class CsvEngine {
           conversions,
           phoneCalls,
           sourceResults,
+          revenue: Math.round(revenue),
+          roas,
           allConversions,
           allConversionsDerived,
           cpa,
@@ -980,6 +1013,7 @@ export class CsvEngine {
       const overallCostPerAllConv = aggAllConversions > 0 ? Math.round(aggSpend / aggAllConversions) : null;
       const overallCtr = aggImpressions > 0 ? parseFloat(((aggClicks / aggImpressions) * 100).toFixed(2)) : 0;
       const conversionRate = aggClicks > 0 ? parseFloat(((aggConversions / aggClicks) * 100).toFixed(2)) : 0;
+      const overallRoas = aggSpend > 0 && aggRevenue > 0 ? parseFloat((aggRevenue / aggSpend).toFixed(2)) : null;
       const allocatedBudget = aggBudget > 0 ? aggBudget : Math.round(aggSpend * 1.35);
 
       const report = {
@@ -1010,6 +1044,8 @@ export class CsvEngine {
           conversions: aggConversions,
           sourceResults: aggResults,
           phoneCalls: aggPhoneCalls,
+          revenue: Math.round(aggRevenue),
+          roas: overallRoas,
           allConversions: aggAllConversions,
           allConversionsDerived: true,
           cpa: overallCpa,
@@ -1157,16 +1193,16 @@ export class CsvEngine {
    * Generate downloadable sample CSV content
    */
   static getSampleCsvContent() {
-    return `Date,Campaign Name,Channel,Specialty,Spend,Impressions,Clicks,Avg CPC,Leads,Conversions,Phone Calls,All Conversions,CPA
-2026-08-15 to 2026-08-21,Kilpauk PMax,PMax,Kilpauk Multispeciality,34501,78500,3909,8.83,14,14.0,19,33,2464
-2026-08-15 to 2026-08-21,Chetpet PMax,PMax,Chetpet Centre,36136,198400,10670,3.39,8,8.0,27,35,4517
-2026-08-15 to 2026-08-21,Knee Ready PMax,PMax,Orthopaedics & Knee,13271,165000,7021,1.89,5,5.0,8,13,2654
-2026-08-15 to 2026-08-21,Health Package Tondiarpet,PMax,Preventive Health,11041,89000,3927,2.81,2,2.0,16,18,5520
-2026-08-15 to 2026-08-21,Headache & Migraine Screening,PMax,Neurology,10763,142000,6258,1.72,2,2.7,5,7,4036
-2026-08-15 to 2026-08-21,Kilpauk Multispeciality Search,Search,Kilpauk Multispeciality,70082,52000,4784,14.65,4,4.0,5,9,17521
-2026-08-15 to 2026-08-21,Tondiarpet PMax,PMax,Tondiarpet Centre,37018,245000,13881,2.67,1,1.8,68,69,20192
-2026-08-15 to 2026-08-21,Knee Ready Search,Search,Orthopaedics & Knee,37875,4800,499,75.90,0,0.0,4,4,N/A
-2026-08-15 to 2026-08-21,Tirunelveli Oncology Search,Search,Oncology,56131,3900,462,121.50,1,1.0,9,10,56131`;
+    return `Date,Campaign Name,Channel,Specialty,Spend,Impressions,Clicks,Avg CPC,Leads,Conversions,Phone Calls,All Conversions,CPA,Revenue,ROAS
+2026-08-15 to 2026-08-21,Kilpauk PMax,PMax,Kilpauk Multispeciality,34501,78500,3909,8.83,14,14.0,19,33,2464,185000,5.36
+2026-08-15 to 2026-08-21,Chetpet PMax,PMax,Chetpet Centre,36136,198400,10670,3.39,8,8.0,27,35,4517,162000,4.48
+2026-08-15 to 2026-08-21,Knee Ready PMax,PMax,Orthopaedics & Knee,13271,165000,7021,1.89,5,5.0,8,13,2654,72000,5.43
+2026-08-15 to 2026-08-21,Health Package Tondiarpet,PMax,Preventive Health,11041,89000,3927,2.81,2,2.0,16,18,5520,38000,3.44
+2026-08-15 to 2026-08-21,Headache & Migraine Screening,PMax,Neurology,10763,142000,6258,1.72,2,2.7,5,7,4036,44000,4.09
+2026-08-15 to 2026-08-21,Kilpauk Multispeciality Search,Search,Kilpauk Multispeciality,70082,52000,4784,14.65,4,4.0,5,9,17521,195000,2.78
+2026-08-15 to 2026-08-21,Tondiarpet PMax,PMax,Tondiarpet Centre,37018,245000,13881,2.67,1,1.8,68,69,20192,85000,2.30
+2026-08-15 to 2026-08-21,Knee Ready Search,Search,Orthopaedics & Knee,37875,4800,499,75.90,0,0.0,4,4,N/A,0,0.00
+2026-08-15 to 2026-08-21,Tirunelveli Oncology Search,Search,Oncology,56131,3900,462,121.50,1,1.0,9,10,56131,25000,0.45`;
   }
 
   /**

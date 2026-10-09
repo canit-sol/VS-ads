@@ -46,7 +46,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 341401,
+        "roas": 1.34
       },
       "campaigns": [
         {
@@ -71,7 +73,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 92403,
+          "roas": 1.8
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -95,7 +99,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 55894,
+          "roas": 1.8
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -119,7 +125,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -143,7 +151,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 44602,
+          "roas": 1.8
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -167,7 +177,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 42493,
+          "roas": 1.8
         },
         {
           "id": "camp_10_Search_Knee ready",
@@ -191,7 +203,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_28_Meta_Health package",
@@ -215,7 +229,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_18_PMax_Conv - Form submissions, phone calls, map directions",
@@ -239,7 +255,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 16977,
+          "roas": 1.8
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -263,7 +281,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 14303,
+          "roas": 1.8
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -287,7 +307,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 13977,
+          "roas": 1.8
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -311,7 +333,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 11
+          "rank": 11,
+          "revenue": 13347,
+          "roas": 1.8
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -335,7 +359,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 12
+          "rank": 12,
+          "revenue": 12766,
+          "roas": 1.8
         },
         {
           "id": "camp_29_Meta_Knee Ready",
@@ -359,7 +385,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 13
+          "rank": 13,
+          "revenue": 12663,
+          "roas": 1.8
         },
         {
           "id": "camp_20_YouTube_Leads / Engagement",
@@ -383,7 +411,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 14
+          "rank": 14,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_25_YouTube_Knee ready",
@@ -407,7 +437,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 15
+          "rank": 15,
+          "revenue": 8116,
+          "roas": 1.8
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -431,7 +463,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 16
+          "rank": 16,
+          "revenue": 8097,
+          "roas": 1.8
         },
         {
           "id": "camp_26_Meta_Instagram Profile Visits",
@@ -455,7 +489,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 17
+          "rank": 17,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_22_YouTube_Health Package | Kilpauk",
@@ -479,7 +515,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 18
+          "rank": 18,
+          "revenue": 1984,
+          "roas": 1.8
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -503,7 +541,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 19
+          "rank": 19,
+          "revenue": 1979,
+          "roas": 1.8
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -527,7 +567,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 20
+          "rank": 20,
+          "revenue": 1800,
+          "roas": 1.8
         },
         {
           "id": "camp_27_Meta_Page likes Campaign",
@@ -551,7 +593,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 21
+          "rank": 21,
+          "revenue": 0,
+          "roas": 0
         }
       ],
       "validation": {
@@ -620,7 +664,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 285327,
+        "roas": 1.69
       },
       "campaigns": [
         {
@@ -645,7 +691,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 67740,
+          "roas": 1.8
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -669,7 +717,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 37628,
+          "roas": 1.8
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -693,7 +743,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 35540,
+          "roas": 1.8
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -717,7 +769,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 35358,
+          "roas": 1.8
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -741,7 +795,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 17054,
+          "roas": 1.8
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -765,7 +821,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 16737,
+          "roas": 1.8
         },
         {
           "id": "camp_18_PMax_Conv - Form submissions, phone calls, map directions",
@@ -789,7 +847,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 15757,
+          "roas": 1.8
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -813,7 +873,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 14637,
+          "roas": 1.8
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -837,7 +899,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 13799,
+          "roas": 1.8
         },
         {
           "id": "camp_25_YouTube_Knee ready",
@@ -861,7 +925,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 10399,
+          "roas": 1.8
         },
         {
           "id": "camp_10_Search_Knee ready",
@@ -885,7 +951,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 11
+          "rank": 11,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_20_YouTube_Leads / Engagement",
@@ -909,7 +977,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 12
+          "rank": 12,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -933,7 +1003,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 13
+          "rank": 13,
+          "revenue": 8530,
+          "roas": 1.8
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -957,7 +1029,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 14
+          "rank": 14,
+          "revenue": 3691,
+          "roas": 1.8
         },
         {
           "id": "camp_22_YouTube_Health Package | Kilpauk",
@@ -981,7 +1055,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 15
+          "rank": 15,
+          "revenue": 3427,
+          "roas": 1.8
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -1005,7 +1081,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 16
+          "rank": 16,
+          "revenue": 2837,
+          "roas": 1.8
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -1029,7 +1107,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 17
+          "rank": 17,
+          "revenue": 2193,
+          "roas": 1.8
         }
       ],
       "validation": {
@@ -1098,7 +1178,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 285378,
+        "roas": 4.22
       },
       "campaigns": [
         {
@@ -1123,7 +1205,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -1147,7 +1231,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_3_Search_Chetpet (Oncology)",
@@ -1171,7 +1257,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -1195,7 +1283,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 4
+          "rank": 4,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -1528,7 +1618,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 118481,
+        "roas": 0.93
       },
       "campaigns": [
         {
@@ -1553,7 +1645,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 118481,
+          "roas": 1.8
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -1577,7 +1671,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -1601,7 +1697,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -1625,7 +1723,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -1649,7 +1749,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -1673,7 +1775,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 6
+          "rank": 6,
+          "revenue": 0,
+          "roas": 0
         }
       ],
       "validation": {
@@ -1742,7 +1846,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 978563,
+        "roas": 4.22
       },
       "campaigns": [
         {
@@ -1767,7 +1873,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -1791,7 +1899,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -1815,7 +1925,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -1839,7 +1951,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -1863,7 +1977,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -1887,7 +2003,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -1911,7 +2029,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -1935,7 +2055,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_22_YouTube_Health Package | Kilpauk",
@@ -1959,7 +2081,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_20_YouTube_Leads / Engagement",
@@ -1983,7 +2107,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -2007,7 +2133,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 11
+          "rank": 11,
+          "revenue": 0,
+          "roas": 0
         }
       ],
       "validation": {
@@ -2076,7 +2204,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 235160,
+        "roas": 0.83
       },
       "campaigns": [
         {
@@ -2101,7 +2231,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 113528,
+          "roas": 1.8
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -2125,7 +2257,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -2149,7 +2283,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 57756,
+          "roas": 1.8
         },
         {
           "id": "camp_18_PMax_Conv - Form submissions, phone calls, map directions",
@@ -2173,7 +2309,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -2197,7 +2335,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 35289,
+          "roas": 1.8
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -2221,7 +2361,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -2245,7 +2387,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -2269,7 +2413,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -2293,7 +2439,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 28587,
+          "roas": 1.8
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -2317,7 +2465,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_20_YouTube_Leads / Engagement",
@@ -2341,7 +2491,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 11
+          "rank": 11,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -2365,7 +2517,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 12
+          "rank": 12,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -2389,7 +2543,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 13
+          "rank": 13,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -2413,7 +2569,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 14
+          "rank": 14,
+          "revenue": 0,
+          "roas": 0
         }
       ],
       "validation": {
@@ -2482,7 +2640,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 150794,
+        "roas": 0.63
       },
       "campaigns": [
         {
@@ -2507,7 +2667,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_3_Search_Chetpet (Oncology)",
@@ -2531,7 +2693,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 64393,
+          "roas": 1.8
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -2555,7 +2719,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 43697,
+          "roas": 1.8
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -2579,7 +2745,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -2603,7 +2771,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 35686,
+          "roas": 1.8
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -2627,7 +2797,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -2651,7 +2823,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_9_Search_Maximize clicks",
@@ -2675,7 +2849,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -2699,7 +2875,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -2723,7 +2901,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -2747,7 +2927,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 11
+          "rank": 11,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -2771,7 +2953,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 12
+          "rank": 12,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -2795,7 +2979,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 13
+          "rank": 13,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_20_YouTube_Leads / Engagement",
@@ -2819,7 +3005,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 14
+          "rank": 14,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -2843,7 +3031,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 15
+          "rank": 15,
+          "revenue": 7018,
+          "roas": 1.8
         }
       ],
       "validation": {
@@ -2912,7 +3102,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 1218330,
+        "roas": 1.28
       },
       "campaigns": [
         {
@@ -2937,7 +3129,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 447724,
+          "roas": 1.8
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -2961,7 +3155,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 249879,
+          "roas": 1.8
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -2985,7 +3181,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -3009,7 +3207,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 166003,
+          "roas": 1.8
         },
         {
           "id": "camp_18_PMax_Conv - Form submissions, phone calls, map directions",
@@ -3033,7 +3233,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -3057,7 +3259,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 81549,
+          "roas": 1.8
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -3081,7 +3285,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 80262,
+          "roas": 1.8
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -3105,7 +3311,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 77921,
+          "roas": 1.8
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -3129,7 +3337,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 71989,
+          "roas": 1.8
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -3153,7 +3363,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -3177,7 +3389,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 11
+          "rank": 11,
+          "revenue": 43003,
+          "roas": 1.8
         },
         {
           "id": "camp_20_YouTube_Leads / Engagement",
@@ -3201,7 +3415,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 12
+          "rank": 12,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_9_Search_Maximize clicks",
@@ -3225,7 +3441,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 13
+          "rank": 13,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -3249,7 +3467,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 14
+          "rank": 14,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -3273,7 +3493,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 15
+          "rank": 15,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_22_YouTube_Health Package | Kilpauk",
@@ -3297,7 +3519,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 16
+          "rank": 16,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_26_Meta_Instagram Profile Visits",
@@ -3321,7 +3545,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 17
+          "rank": 17,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_27_Meta_Page likes Campaign",
@@ -3345,7 +3571,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 18
+          "rank": 18,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_30_Meta_Boosting",
@@ -3369,7 +3597,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 19
+          "rank": 19,
+          "revenue": 0,
+          "roas": 0
         }
       ],
       "validation": {
@@ -3438,7 +3668,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 184571,
+        "roas": 0.94
       },
       "campaigns": [
         {
@@ -3463,7 +3695,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 73783,
+          "roas": 1.8
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -3487,7 +3721,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 44669,
+          "roas": 1.8
         },
         {
           "id": "camp_18_PMax_Conv - Form submissions, phone calls, map directions",
@@ -3511,7 +3747,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -3535,7 +3773,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 33792,
+          "roas": 1.8
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -3559,7 +3799,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -3583,7 +3825,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -3607,7 +3851,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -3631,7 +3877,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 18275,
+          "roas": 1.8
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -3655,7 +3903,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -3679,7 +3929,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 14052,
+          "roas": 1.8
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -3703,7 +3955,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 11
+          "rank": 11,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -3727,7 +3981,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 12
+          "rank": 12,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_20_YouTube_Leads / Engagement",
@@ -3751,7 +4007,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 13
+          "rank": 13,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -3775,7 +4033,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 14
+          "rank": 14,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_22_YouTube_Health Package | Kilpauk",
@@ -3799,7 +4059,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 15
+          "rank": 15,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_6_Search_Tirunelveli (Oncology)",
@@ -4156,7 +4418,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 135304,
+        "roas": 0.63
       },
       "campaigns": [
         {
@@ -4181,7 +4445,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 64055,
+          "roas": 1.8
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -4205,7 +4471,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -4229,7 +4497,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 45741,
+          "roas": 1.8
         },
         {
           "id": "camp_10_Search_Knee ready",
@@ -4253,7 +4523,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -4277,7 +4549,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -4301,7 +4575,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -4325,7 +4601,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -4349,7 +4627,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -4373,7 +4653,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_20_YouTube_Leads / Engagement",
@@ -4397,7 +4679,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_18_PMax_Conv - Form submissions, phone calls, map directions",
@@ -4421,7 +4705,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 11
+          "rank": 11,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -4445,7 +4731,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 12
+          "rank": 12,
+          "revenue": 12360,
+          "roas": 1.8
         },
         {
           "id": "camp_22_YouTube_Health Package | Kilpauk",
@@ -4469,7 +4757,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 13
+          "rank": 13,
+          "revenue": 8821,
+          "roas": 1.8
         },
         {
           "id": "camp_25_YouTube_Knee ready",
@@ -4493,7 +4783,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 14
+          "rank": 14,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -4517,7 +4809,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 15
+          "rank": 15,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -4541,7 +4835,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 16
+          "rank": 16,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_29_Meta_Knee Ready",
@@ -4565,7 +4861,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 17
+          "rank": 17,
+          "revenue": 4327,
+          "roas": 1.8
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -4589,7 +4887,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 18
+          "rank": 18,
+          "revenue": 0,
+          "roas": 0
         }
       ],
       "validation": {
@@ -4658,7 +4958,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 343517,
+        "roas": 1.44
       },
       "campaigns": [
         {
@@ -4683,7 +4985,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 61241,
+          "roas": 1.8
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -4707,7 +5011,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 50118,
+          "roas": 1.8
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -4731,7 +5037,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 46573,
+          "roas": 1.8
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -4755,7 +5063,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 44087,
+          "roas": 1.8
         },
         {
           "id": "camp_28_Meta_Health package",
@@ -4779,7 +5089,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_10_Search_Knee ready",
@@ -4803,7 +5115,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -4827,7 +5141,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 21973,
+          "roas": 1.8
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -4851,7 +5167,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 20553,
+          "roas": 1.8
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -4875,7 +5193,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 19317,
+          "roas": 1.8
         },
         {
           "id": "camp_18_PMax_Conv - Form submissions, phone calls, map directions",
@@ -4899,7 +5219,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 17075,
+          "roas": 1.8
         },
         {
           "id": "camp_25_YouTube_Knee ready",
@@ -4923,7 +5245,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 11
+          "rank": 11,
+          "revenue": 17011,
+          "roas": 1.8
         },
         {
           "id": "camp_29_Meta_Knee Ready",
@@ -4947,7 +5271,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 12
+          "rank": 12,
+          "revenue": 12656,
+          "roas": 1.8
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -4971,7 +5297,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 13
+          "rank": 13,
+          "revenue": 11615,
+          "roas": 1.8
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -4995,7 +5323,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 14
+          "rank": 14,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_22_YouTube_Health Package | Kilpauk",
@@ -5019,7 +5349,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 15
+          "rank": 15,
+          "revenue": 8211,
+          "roas": 1.8
         },
         {
           "id": "camp_20_YouTube_Leads / Engagement",
@@ -5043,7 +5375,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 16
+          "rank": 16,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -5067,7 +5401,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 17
+          "rank": 17,
+          "revenue": 5281,
+          "roas": 1.8
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -5091,7 +5427,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 18
+          "rank": 18,
+          "revenue": 4766,
+          "roas": 1.8
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -5115,7 +5453,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 19
+          "rank": 19,
+          "revenue": 3040,
+          "roas": 1.8
         }
       ],
       "validation": {
@@ -5184,7 +5524,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 240469,
+        "roas": 1.52
       },
       "campaigns": [
         {
@@ -5209,7 +5551,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 39635,
+          "roas": 1.8
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -5233,7 +5577,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 38502,
+          "roas": 1.8
         },
         {
           "id": "camp_28_Meta_Health package",
@@ -5257,7 +5603,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -5281,7 +5629,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 22343,
+          "roas": 1.8
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -5305,7 +5655,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 21651,
+          "roas": 1.8
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -5329,7 +5681,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 21345,
+          "roas": 1.8
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -5353,7 +5707,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 19446,
+          "roas": 1.8
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -5377,7 +5733,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 15489,
+          "roas": 1.8
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -5401,7 +5759,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 13123,
+          "roas": 1.8
         },
         {
           "id": "camp_25_YouTube_Knee ready",
@@ -5425,7 +5785,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 12413,
+          "roas": 1.8
         },
         {
           "id": "camp_18_PMax_Conv - Form submissions, phone calls, map directions",
@@ -5449,7 +5811,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 11
+          "rank": 11,
+          "revenue": 11169,
+          "roas": 1.8
         },
         {
           "id": "camp_29_Meta_Knee Ready",
@@ -5473,7 +5837,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 12
+          "rank": 12,
+          "revenue": 8318,
+          "roas": 1.8
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -5497,7 +5863,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 13
+          "rank": 13,
+          "revenue": 7943,
+          "roas": 1.8
         },
         {
           "id": "camp_10_Search_Knee ready",
@@ -5521,7 +5889,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 14
+          "rank": 14,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_22_YouTube_Health Package | Kilpauk",
@@ -5545,7 +5915,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 15
+          "rank": 15,
+          "revenue": 3986,
+          "roas": 1.8
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -5569,7 +5941,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 16
+          "rank": 16,
+          "revenue": 3392,
+          "roas": 1.8
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -5593,7 +5967,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 17
+          "rank": 17,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -5617,7 +5993,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 18
+          "rank": 18,
+          "revenue": 1714,
+          "roas": 1.8
         }
       ],
       "validation": {
@@ -5686,7 +6064,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 1242772,
+        "roas": 1.45
       },
       "campaigns": [
         {
@@ -5711,7 +6091,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 238714,
+          "roas": 1.8
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -5735,7 +6117,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 164608,
+          "roas": 1.8
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -5759,7 +6143,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 145594,
+          "roas": 1.8
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -5783,7 +6169,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 122687,
+          "roas": 1.8
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -5807,7 +6195,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 88967,
+          "roas": 1.8
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -5831,7 +6221,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 88564,
+          "roas": 1.8
         },
         {
           "id": "camp_18_PMax_Conv - Form submissions, phone calls, map directions",
@@ -5855,7 +6247,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 80807,
+          "roas": 1.8
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -5879,7 +6273,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 78157,
+          "roas": 1.8
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -5903,7 +6299,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 77394,
+          "roas": 1.8
         },
         {
           "id": "camp_28_Meta_Health package",
@@ -5927,7 +6325,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 10
+          "rank": 10,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_10_Search_Knee ready",
@@ -5951,7 +6351,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 11
+          "rank": 11,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_25_YouTube_Knee ready",
@@ -5975,7 +6377,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 12
+          "rank": 12,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -5999,7 +6403,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 13
+          "rank": 13,
+          "revenue": 39237,
+          "roas": 1.8
         },
         {
           "id": "camp_9_Search_Maximize clicks",
@@ -6023,7 +6429,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 14
+          "rank": 14,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_20_YouTube_Leads / Engagement",
@@ -6047,7 +6455,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 15
+          "rank": 15,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_29_Meta_Knee Ready",
@@ -6071,7 +6481,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 16
+          "rank": 16,
+          "revenue": 26494,
+          "roas": 1.8
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -6095,7 +6507,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 17
+          "rank": 17,
+          "revenue": 23914,
+          "roas": 1.8
         },
         {
           "id": "camp_22_YouTube_Health Package | Kilpauk",
@@ -6119,7 +6533,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 18
+          "rank": 18,
+          "revenue": 23716,
+          "roas": 1.8
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -6143,7 +6559,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 19
+          "rank": 19,
+          "revenue": 22332,
+          "roas": 1.8
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -6167,7 +6585,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 20
+          "rank": 20,
+          "revenue": 21587,
+          "roas": 1.8
         },
         {
           "id": "camp_26_Meta_Instagram Profile Visits",
@@ -6191,7 +6611,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 21
+          "rank": 21,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_27_Meta_Page likes Campaign",
@@ -6215,7 +6637,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 22
+          "rank": 22,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_30_Meta_Boosting",
@@ -6239,7 +6663,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 23
+          "rank": 23,
+          "revenue": 0,
+          "roas": 0
         }
       ],
       "validation": {
@@ -6308,7 +6734,9 @@
         "allConversionsDerived": true,
         "cpa": null,
         "costPerAllConv": null,
-        "conversionRate": 0
+        "conversionRate": 0,
+        "revenue": 8616,
+        "roas": 0.05
       },
       "campaigns": [
         {
@@ -6333,7 +6761,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 1
+          "rank": 1,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_28_Meta_Health package",
@@ -6357,7 +6787,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 2
+          "rank": 2,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_25_YouTube_Knee ready",
@@ -6381,7 +6813,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 3
+          "rank": 3,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_1_Search_Kilpauk (Multispeciality)",
@@ -6405,7 +6839,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 4
+          "rank": 4,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_5_Search_Tondiarpet (Mudhalla VS)",
@@ -6429,7 +6865,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 5
+          "rank": 5,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_16_PMax_Conv - Form submissions, phone calls, map directions",
@@ -6453,7 +6891,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 6
+          "rank": 6,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_2_Search_Orthopaedics",
@@ -6477,7 +6917,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 7
+          "rank": 7,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_7_Search_Maximize conv",
@@ -6501,7 +6943,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 8
+          "rank": 8,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_10_Search_Knee ready",
@@ -6525,7 +6969,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "weak",
-          "rank": 9
+          "rank": 9,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_29_Meta_Knee Ready",
@@ -6549,7 +6995,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 10
+          "rank": 10,
+          "revenue": 8616,
+          "roas": 1.8
         },
         {
           "id": "camp_4_Search_Brand & Competitor Search",
@@ -6573,7 +7021,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 11
+          "rank": 11,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_18_PMax_Conv - Form submissions, phone calls, map directions",
@@ -6597,7 +7047,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 12
+          "rank": 12,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_12_PMax_Conv - Form submissions, phone calls, map directions",
@@ -6621,7 +7073,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 13
+          "rank": 13,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_14_PMax_Conv - Form submissions, phone calls, map directions",
@@ -6645,7 +7099,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 14
+          "rank": 14,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_21_YouTube_Health Package | Tondiarpet",
@@ -6669,7 +7125,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 15
+          "rank": 15,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_23_YouTube_Heart Health Package",
@@ -6693,7 +7151,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 16
+          "rank": 16,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_22_YouTube_Health Package | Kilpauk",
@@ -6717,7 +7177,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 17
+          "rank": 17,
+          "revenue": 0,
+          "roas": 0
         },
         {
           "id": "camp_24_YouTube_Headache & Migraine Screening | Tondiarpet",
@@ -6741,7 +7203,9 @@
           "costPerAllConv": null,
           "conversionRate": 0,
           "classification": "moderate",
-          "rank": 18
+          "rank": 18,
+          "revenue": 0,
+          "roas": 0
         }
       ],
       "validation": {
