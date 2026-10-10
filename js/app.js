@@ -215,7 +215,8 @@ class AppController {
         { clientId: 'omnevum', name: 'omnevum' },
         { clientId: 'redbay', name: 'redbay' },
         { clientId: 'clf', name: 'clf' },
-        { clientId: 'rps', name: 'rps' }
+        { clientId: 'rps', name: 'rps' },
+        { clientId: 'vs', name: 'vs' }
       ];
 
     // Filter out internal demo/test clients for clean production tab bar
