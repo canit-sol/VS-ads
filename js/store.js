@@ -152,29 +152,22 @@ export class ReportsJsonProvider {
       } catch (e) {}
     }
 
-    // If client is vs, vsh, or demo, attempt loading their reports
-    if (cId === 'vs' || cId === 'vsh' || cId === 'canit_demo') {
-      const endpoints = [
-        `./data/clients/${cId}/reports.json`,
-        './data/clients/vs/reports.json',
-        './data/clients/vsh/reports.json',
-        this.endpoint
-      ];
-      for (const ep of endpoints) {
-        try {
-          const res = await fetch(ep + `?v=${Date.now()}`, { cache: 'no-store' });
-          if (res.ok) {
-            const data = await res.json();
-            return {
-              reports: Array.isArray(data.reports) ? data.reports : (Array.isArray(data) ? data : []),
-              publishedAt: data.publishedAt || null,
-              version: data.version || '1.0.0',
-              client: { clientId: cId, name: cId.replace(/_/g, ' ') }
-            };
-          }
-        } catch (e) {}
+    // Check if client has uploaded data file on server or static hosting
+    try {
+      const res = await fetch(`./data/clients/${cId}/reports.json?v=${Date.now()}`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        const repList = Array.isArray(data.reports) ? data.reports : (Array.isArray(data) ? data : []);
+        if (repList.length > 0) {
+          return {
+            reports: repList,
+            publishedAt: data.publishedAt || null,
+            version: data.version || '1.0.0',
+            client: { clientId: cId, name: cId.replace(/_/g, ' ') }
+          };
+        }
       }
-    }
+    } catch (e) {}
 
     // Return empty dataset for this client to show the clean Plain Workspace
     return {
