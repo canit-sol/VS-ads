@@ -1,6 +1,6 @@
 /**
- * CANIT Skope - Industrial-Grade CSV Ingestion & Normalization Engine
- * Phase 2: Data Engine & Reporting Period Intelligence
+ * CANIT Skope - Industrial-Grade CSV & Excel Ingestion Engine
+ * Multi-Format Cross-Tab Matrix & Normalized Ingestion
  */
 
 import { PeriodEngine } from './period-engine.js';
@@ -12,37 +12,126 @@ export class CsvEngine {
   };
 
   static KPI_SYNONYMS = {
-    spend: ['amount', 'amount spent', 'spent', 'cost', 'spend', 'total cost', 'amount spent (inr)', 'amount spent (usd)', 'cost (inr)', 'cost (usd)', 'budget spent'],
-    clicks: ['clicks', 'click count', 'interactions', 'link clicks', 'clicks (all)', 'total clicks'],
-    cpc: ['cpc', 'avg cpc', 'cost / click', 'avg. cpc', 'cpc (cost per link click)', 'cpc (all)'],
-    leads: ['leads', 'form leads', 'patient leads', 'on-facebook leads', 'leads (form)', 'messaging conversations started'],
-    phoneCalls: ['phone calls', 'calls', 'phone inquiries', 'call interactions', 'phone call'],
-    views: ['views', 'impressions', 'impr', 'impr.'],
-    sourceResults: ['results', 'result', 'all results'],
-    conversions: ['conversions', 'conv', 'recorded conversions', 'results', 'primary conversions'],
-    allConversions: ['all conv', 'all conversions', 'all conv.'],
-    budget: ['allocated budget', 'allocated', 'budget'],
-    cpl: ['cpl', 'cost per lead'],
-    cpr: ['cpr', 'cost per result', 'cost per 1,000 impressions (cpm)'],
-    revenue: ['conversion value', 'conv value', 'conv. value', 'revenue', 'purchase value', 'total conversion value', 'total conv value', 'sales', 'ad-attributed revenue', 'ad attributed revenue'],
-    roas: ['roas', 'conv. value / cost', 'conv value / cost', 'return on ad spend', 'conversion value / cost', 'roas (return on ad spend)']
+    spend: [
+      'amount', 'amount spent', 'spent', 'cost', 'spend', 'total cost', 'total spend',
+      'amount spent (inr)', 'amount spent (usd)', 'cost (inr)', 'cost (usd)', 'budget spent',
+      'amount(inr)', 'amount (inr)', 'amount (₹)', 'amount spent (₹)', 'total amount spent',
+      'actual spend', 'ad spend', 'spend (inr)'
+    ],
+    clicks: [
+      'clicks', 'click count', 'interactions', 'link clicks', 'clicks (all)', 'total clicks',
+      'link click', 'clicks (link)', 'click'
+    ],
+    cpc: [
+      'cpc', 'avg cpc', 'cost / click', 'avg. cpc', 'cpc (cost per link click)', 'cpc (all)',
+      'cost per click', 'cpc (inr)', 'avg cpc (inr)', 'avg. cost / click', 'average cpc', 'cost / link click'
+    ],
+    leads: [
+      'leads', 'form leads', 'patient leads', 'on-facebook leads', 'leads (form)',
+      'messaging conversations started', 'link clicks', 'results', 'inquiries', 'lead',
+      'total leads', 'form inquiries', 'lead submissions', 'conversions (leads)'
+    ],
+    phoneCalls: [
+      'phone calls', 'calls', 'phone inquiries', 'call interactions', 'phone call',
+      'click to call', 'call leads', 'phone leads'
+    ],
+    views: [
+      'views', 'impressions', 'impr', 'impr.', 'reach', 'total reach', 'unique reach',
+      'reaches', 'impression count', 'total impressions', 'reach (people)'
+    ],
+    sourceResults: [
+      'results', 'result', 'all results', 'total results'
+    ],
+    conversions: [
+      'conversions', 'conv', 'recorded conversions', 'results', 'primary conversions',
+      'conv.', 'total conversions', 'conversions count'
+    ],
+    allConversions: [
+      'all conv', 'all conversions', 'all conv.', 'total conv', 'total conversions',
+      'all_conversions', 'all conv (recorded)', 'all conversion'
+    ],
+    budget: [
+      'allocated budget', 'allocated', 'budget', 'allocated budget (inr)', 'monthly budget',
+      'budget (inr)', 'campaign budget', 'allocated (inr)', 'budget allocated', 'allocated cost'
+    ],
+    cpl: [
+      'cpl', 'cost per lead', 'cost / lead', 'cpl (inr)', 'cost / form lead', 'avg cpl',
+      'cost per acquired lead', 'cpl (cost per lead)'
+    ],
+    cpr: [
+      'cpr', 'cost per result', 'cost per 1,000 impressions (cpm)', 'cpm', 'cost / result'
+    ],
+    revenue: [
+      'conversion value', 'conv value', 'conv. value', 'revenue', 'purchase value',
+      'total conversion value', 'total conv value', 'sales', 'ad-attributed revenue',
+      'ad attributed revenue', 'conversion value (inr)', 'total value', 'order value'
+    ],
+    roas: [
+      'roas', 'conv. value / cost', 'conv value / cost', 'return on ad spend',
+      'conversion value / cost', 'roas (return on ad spend)', 'purchase roas'
+    ]
   };
 
   static COLUMN_SYNONYMS = {
-    name: ['campaign', 'campaign name', 'campaign_name', 'campaignname', 'ad group', 'adgroup', 'ad name', 'ad set name', 'adset name', 'campaigns', 'campaign title'],
-    spend: ['spend', 'cost', 'total cost', 'amount', 'amount spent', 'inr', 'cost (inr)', 'spent', 'amount spent (inr)', 'amount spent (usd)', 'cost (usd)', 'budget spent', 'total spend'],
-    impressions: ['impressions', 'impr', 'impr.', 'views', 'impression count', 'total impressions'],
-    clicks: ['clicks', 'click count', 'interactions', 'link clicks', 'clicks (all)', 'total clicks', 'link click'],
-    cpc: ['cpc', 'avg cpc', 'cost / click', 'avg. cpc', 'cost per click', 'avg cpc (inr)', 'avg. cost / click', 'cpc (cost per link click)', 'cpc (all)', 'average cpc'],
-    ctr: ['ctr', 'click through rate', 'click-through rate', 'ctr %', 'ctr (all)', 'ctr (link click-through rate)', 'link click-through rate', 'click-through rate (ctr)'],
-    leads: ['leads', 'form leads', 'patient leads', 'inquiries', 'web leads', 'lead', 'on-facebook leads', 'leads (form)', 'messaging conversations started', 'lead submissions'],
-    conversions: ['conversions', 'conv', 'recorded conversions', 'results', 'primary conversions', 'conv.', 'total conversions', 'conversions count', 'all results'],
-    phoneCalls: ['phone calls', 'calls', 'call count', 'phone inquiries', 'phone leads', 'call interactions', 'phone call', 'click to call', 'phone call leads'],
-    allConversions: ['all conv', 'all conv.', 'all conversions', 'total conv', 'total conversions', 'all_conversions', 'all conv (recorded)', 'all conversion'],
-    cpa: ['cpa', 'cost / conv', 'cost per conversion', 'cost per acquisition', 'cost / conv.', 'cost per result', 'cost / result', 'cpr', 'cost per conv'],
-    costPerAllConv: ['cost / all conv', 'cost / all conv.', 'cost per all conv', 'cost per all conversion'],
-    revenue: ['conversion value', 'conv. value', 'conv value', 'total conv value', 'total conversion value', 'all conv. value', 'all conv value', 'revenue', 'purchase value', 'purchase conversion value', 'sales', 'ad-attributed revenue', 'ad attributed revenue', 'total sales', 'order value', 'value'],
-    roas: ['roas', 'return on ad spend', 'conv. value / cost', 'conv value / cost', 'conversion value / cost', 'all conv. value / cost', 'purchase roas', 'roas (return on ad spend)'],
+    name: [
+      'campaign', 'campaign name', 'campaign_name', 'campaignname', 'ad group', 'adgroup',
+      'ad name', 'ad set name', 'adset name', 'campaigns', 'campaign title',
+      'ad-type', 'ad type', 'ad_type', 'adtype', 'ad-type / campaign', 'campaign / ad-type',
+      'ad set', 'adset', 'ad set / campaign', 'ad'
+    ],
+    spend: [
+      'spend', 'cost', 'total cost', 'amount', 'amount spent', 'inr', 'cost (inr)', 'spent',
+      'amount spent (inr)', 'amount spent (usd)', 'cost (usd)', 'budget spent', 'total spend',
+      'amount (inr)', 'amount(inr)', 'amount (₹)'
+    ],
+    impressions: [
+      'impressions', 'impr', 'impr.', 'views', 'impression count', 'total impressions',
+      'reach', 'total reach', 'unique reach'
+    ],
+    clicks: [
+      'clicks', 'click count', 'interactions', 'link clicks', 'clicks (all)', 'total clicks',
+      'link click'
+    ],
+    cpc: [
+      'cpc', 'avg cpc', 'cost / click', 'avg. cpc', 'cost per click', 'avg cpc (inr)',
+      'avg. cost / click', 'cpc (cost per link click)', 'cpc (all)', 'average cpc'
+    ],
+    ctr: [
+      'ctr', 'click through rate', 'click-through rate', 'ctr %', 'ctr (all)',
+      'ctr (link click-through rate)', 'link click-through rate', 'click-through rate (ctr)'
+    ],
+    leads: [
+      'leads', 'form leads', 'patient leads', 'inquiries', 'web leads', 'lead',
+      'on-facebook leads', 'leads (form)', 'messaging conversations started', 'lead submissions'
+    ],
+    conversions: [
+      'conversions', 'conv', 'recorded conversions', 'results', 'primary conversions',
+      'conv.', 'total conversions', 'conversions count', 'all results'
+    ],
+    phoneCalls: [
+      'phone calls', 'calls', 'call count', 'phone inquiries', 'phone leads',
+      'call interactions', 'phone call', 'click to call', 'phone call leads'
+    ],
+    allConversions: [
+      'all conv', 'all conv.', 'all conversions', 'total conv', 'total conversions',
+      'all_conversions', 'all conv (recorded)', 'all conversion'
+    ],
+    cpa: [
+      'cpa', 'cost / conv', 'cost per conversion', 'cost per acquisition', 'cost / conv.',
+      'cost per result', 'cost / result', 'cpr', 'cost per conv'
+    ],
+    costPerAllConv: [
+      'cost / all conv', 'cost / all conv.', 'cost per all conv', 'cost per all conversion'
+    ],
+    revenue: [
+      'conversion value', 'conv. value', 'conv value', 'total conv value', 'total conversion value',
+      'all conv. value', 'all conv value', 'revenue', 'purchase value', 'purchase conversion value',
+      'sales', 'ad-attributed revenue', 'ad attributed revenue', 'total sales', 'order value', 'value'
+    ],
+    roas: [
+      'roas', 'return on ad spend', 'conv. value / cost', 'conv value / cost',
+      'conversion value / cost', 'all conv. value / cost', 'purchase roas', 'roas (return on ad spend)'
+    ],
     specialty: ['specialty', 'location', 'specialty / loc', 'service', 'department', 'centre', 'center'],
     channel: ['channel', 'type', 'campaign type', 'strategy', 'advertising channel'],
     platform: ['platform', 'advertising platform', 'ad platform', 'network', 'publisher', 'source'],
@@ -74,18 +163,37 @@ export class CsvEngine {
     const col0 = (headers[0] || '').trim().toLowerCase();
     const col1 = (headers[1] || '').trim().toLowerCase();
 
-    const isCampaign = col0 === 'campaign' || col0 === 'campaign name' || col0.includes('campaign');
-    const isKpi = col1 === 'kpi' || col1 === 'metric' || col1.includes('kpi');
+    const isCampaignSynonym = [
+      'campaign', 'campaign name', 'campaign_name', 'campaignname', 'campaigns',
+      'ad-type', 'ad type', 'ad_type', 'adtype', 'ad-type / campaign', 'campaign / ad-type',
+      'ad set', 'adset', 'ad group', 'adgroup', 'ad name', 'ad set name'
+    ].some(syn => col0 === syn || col0.includes(syn));
 
-    if (isCampaign && isKpi) {
-      let validPeriodCols = 0;
-      for (let i = 2; i < headers.length; i++) {
-        if (PeriodEngine.parsePeriodHeader(headers[i])) {
-          validPeriodCols++;
-        }
+    const isKpiSynonym = [
+      'kpi', 'kpis', 'metric', 'metrics', 'kpi / metric', 'metric / kpi'
+    ].some(syn => col1 === syn || col1.includes(syn));
+
+    // Check if period columns exist (e.g. Dec 2025, Jan 2026, Mar 2026, Aug 1 - 7 2026, etc.)
+    let validPeriodCols = 0;
+    for (let i = 2; i < headers.length; i++) {
+      if (PeriodEngine.parsePeriodHeader(headers[i])) {
+        validPeriodCols++;
       }
-      if (validPeriodCols >= 1) {
+    }
+
+    if (validPeriodCols >= 1) {
+      if (isKpiSynonym || isCampaignSynonym) {
         return this.FORMATS.CROSS_TAB;
+      }
+      // Also check if col1 has KPI row values like "allocated budget", "amount spent", etc.
+      if (rawRows && rawRows.length > 0) {
+        const hasKpiValues = rawRows.slice(0, 15).some(row => {
+          const val = (row[headers[1]] || '').trim().toLowerCase();
+          return Object.values(this.KPI_SYNONYMS).some(list => list.includes(val));
+        });
+        if (hasKpiValues) {
+          return this.FORMATS.CROSS_TAB;
+        }
       }
     }
 
@@ -154,12 +262,13 @@ export class CsvEngine {
   static findHeaderRowIndex(allRows) {
     if (!allRows || allRows.length === 0) return 0;
 
-    const maxScan = Math.min(allRows.length, 20);
+    const maxScan = Math.min(allRows.length, 25);
     const KEYWORDS = [
       'campaign', 'campaign name', 'campaign_name', 'campaignname', 'ad group', 'adgroup',
-      'kpi', 'metric', 'spend', 'cost', 'amount', 'amount spent', 'spent',
-      'impressions', 'impr', 'clicks', 'conversions', 'conv', 'leads',
-      'ctr', 'cpc', 'cpa', 'results', 'phone calls', 'calls', 'date', 'day'
+      'ad-type', 'ad type', 'ad_type', 'ad set', 'adset',
+      'kpi', 'kpis', 'metric', 'metrics', 'spend', 'cost', 'amount', 'amount spent', 'spent',
+      'impressions', 'impr', 'reach', 'clicks', 'conversions', 'conv', 'leads',
+      'ctr', 'cpc', 'cpa', 'cpl', 'results', 'phone calls', 'calls', 'date', 'day'
     ];
 
     let bestRowIdx = 0;
@@ -191,9 +300,60 @@ export class CsvEngine {
   }
 
   /**
-   * Parse raw CSV file content or string with PapaParse
+   * Parse raw CSV file content or string with PapaParse or SheetJS for Excel
    */
-  static parseRawCsv(fileOrString) {
+  static async parseRawCsv(fileOrString) {
+    // 1. Check if input is a File/Blob with Excel format (.xlsx / .xls)
+    if (typeof File !== 'undefined' && fileOrString instanceof File) {
+      const isExcel = /\.(xlsx|xls)$/i.test(fileOrString.name);
+      if (isExcel && typeof XLSX !== 'undefined') {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = e => {
+            try {
+              const data = new Uint8Array(e.target.result);
+              const workbook = XLSX.read(data, { type: 'array' });
+              const targetSheetName = workbook.SheetNames.find(n => /kpi/i.test(n)) || workbook.SheetNames[0];
+              const worksheet = workbook.Sheets[targetSheetName];
+              const allRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: false });
+
+              if (!allRows || allRows.length === 0) {
+                resolve({ data: [], headers: [], errors: [] });
+                return;
+              }
+
+              const headerRowIdx = CsvEngine.findHeaderRowIndex(allRows);
+              const rawHeaders = allRows[headerRowIdx] || [];
+              const headers = rawHeaders.map(h => String(h || '').trim());
+              const parsedRows = [];
+
+              for (let i = headerRowIdx + 1; i < allRows.length; i++) {
+                const r = allRows[i];
+                if (!r || r.length === 0 || r.every(c => !c || !String(c).trim())) continue;
+
+                const col0 = String(r[0] || '').trim().toLowerCase();
+                const isSummaryFooter = (/^(total:?|subtotal:?|account total|summary|results from)\b/i.test(col0));
+                if (isSummaryFooter && headers[1] && !/kpi|metric/i.test(headers[1])) {
+                  continue;
+                }
+
+                const rowObj = {};
+                headers.forEach((h, idx) => {
+                  rowObj[h] = r[idx] !== undefined ? String(r[idx]).trim() : '';
+                });
+                parsedRows.push(rowObj);
+              }
+              resolve({ data: parsedRows, headers, errors: [] });
+            } catch (err) {
+              reject(err);
+            }
+          };
+          reader.onerror = err => reject(err);
+          reader.readAsArrayBuffer(fileOrString);
+        });
+      }
+    }
+
     return new Promise((resolve, reject) => {
       if (typeof Papa !== 'undefined') {
         Papa.parse(fileOrString, {
@@ -213,7 +373,7 @@ export class CsvEngine {
 
             const headerRowIdx = CsvEngine.findHeaderRowIndex(allRows);
             const rawHeaders = allRows[headerRowIdx] || [];
-            const headers = rawHeaders.map(h => (h || '').trim());
+            const headers = rawHeaders.map(h => String(h || '').trim());
             const parsedRows = [];
 
             for (let i = headerRowIdx + 1; i < allRows.length; i++) {
@@ -239,7 +399,7 @@ export class CsvEngine {
         return;
       }
 
-      // Built-in fallback parser if PapaParse is not globally available (e.g. Node environments or offline)
+      // Built-in fallback parser if PapaParse is not globally available
       try {
         const text = typeof fileOrString === 'string' ? fileOrString : '';
         const lines = text.split(/\r?\n/);
@@ -271,7 +431,7 @@ export class CsvEngine {
         }
 
         const headerRowIdx = CsvEngine.findHeaderRowIndex(allRows);
-        const headers = (allRows[headerRowIdx] || []).map(h => (h || '').trim());
+        const headers = (allRows[headerRowIdx] || []).map(h => String(h || '').trim());
         const parsedRows = [];
 
         for (let i = headerRowIdx + 1; i < allRows.length; i++) {
@@ -333,21 +493,22 @@ export class CsvEngine {
         errors.push('No valid reporting period columns detected in KPI Cross-Tab headers.');
       }
 
-      // Check for Spend / Cost KPI row (Requirement 12)
+      // Check for Spend / Cost / Budget KPI row
       const hasSpendRow = rawRows.some(row => {
         const kpi = (row[headers[1]] || '').trim().toLowerCase();
-        return this.KPI_SYNONYMS.spend.includes(kpi);
+        return this.KPI_SYNONYMS.spend.some(syn => kpi === syn || kpi.includes(syn) || syn.includes(kpi)) ||
+               this.KPI_SYNONYMS.budget.some(syn => kpi === syn || kpi.includes(syn) || syn.includes(kpi));
       });
 
       if (!hasSpendRow) {
-        errors.push('Required KPI row missing: Amount / Amount spent / Spent.');
+        errors.push('Required KPI row missing: Amount spent / Spent / Allocated Budget.');
       }
 
       const distinctCampaigns = new Set();
       rawRows.forEach(row => {
         const c = (row[headers[0]] || '').trim();
         const k = (row[headers[1]] || '').trim();
-        if (/^total/i.test(c)) return;
+        if (/^total/i.test(c) || /^summary/i.test(c)) return;
         if (c && k) distinctCampaigns.add(c.toLowerCase());
       });
 
@@ -363,7 +524,7 @@ export class CsvEngine {
         status,
         format,
         rowCount: rawRows.length,
-        campaignCount: distinctCampaigns.size,
+        campaignCount: Math.max(1, distinctCampaigns.size),
         granularity: 'period',
         granularityDescription: 'CANIT Skope KPI Cross-Tab pre-aggregated reporting periods',
         allConversionsDerived: false,
@@ -398,13 +559,9 @@ export class CsvEngine {
       };
     }
 
-    // Explicitly detect data granularity:
-    // A. Daily-level records (multiple dated rows for the same campaign)
-    // B. Already-aggregated period-level records (1 record per campaign for the period)
     const granularity = PeriodEngine.detectDataGranularity(rawRows, mapping);
     infos.push(granularity.description);
 
-    // Check optional columns
     if (!mapping.impressions) {
       warnings.push("Missing 'Impressions' column; impression counts will be estimated from clicks.");
     }
@@ -412,14 +569,12 @@ export class CsvEngine {
       warnings.push("Missing 'Clicks' column; interaction counts default to 0.");
     }
 
-    // Check distinct conversions integrity (DATA INTEGRITY CORRECTION)
     let allConversionsDerived = false;
     if (!mapping.allConversions) {
       allConversionsDerived = true;
       warnings.push("Source CSV does not contain an 'All Conversions' column. 'allConversions' was derived using documented fallback (defaulted to recorded conversions; not combined with phone calls).");
     }
 
-    // Check date column
     const detectedPeriod = PeriodEngine.determineReportingPeriod(rawRows, mapping.date, fileName);
     if (!mapping.date) {
       warnings.push(`No explicit date column found in CSV rows. Inferred period as ${detectedPeriod.periodLabel} from file context.`);
@@ -427,7 +582,6 @@ export class CsvEngine {
       infos.push(`Detected reporting period: ${detectedPeriod.periodLabel}`);
     }
 
-    // Check duplicate period in existing reports
     let isDuplicate = false;
     let existingReportId = null;
     const dupMatch = existingReports.find(r => {
@@ -486,17 +640,11 @@ export class CsvEngine {
     const fileName = metadata.fileName || 'weekly_ad_report.csv';
     const validation = this.validateCsv(rawRows, headers, metadata.existingReports || [], fileName);
 
-    // Period classification
     const period = validation.detectedPeriod || PeriodEngine.determineReportingPeriod(rawRows, mapping.date, fileName);
-
-    // Explicitly detect data granularity:
-    // A. Daily-level records -> aggregate them by campaign and reporting period
-    // B. Already-aggregated period-level records -> use supplied campaign metrics directly, DO NOT aggregate again
     const granularity = PeriodEngine.detectDataGranularity(rawRows, mapping);
     let rowsToProcess = [];
 
     if (granularity.type === 'daily') {
-      // Case A: Daily-level records detected -> aggregate rows by campaign and reporting period
       const aggregatedDaily = PeriodEngine.aggregateDailyRowsByCampaign(rawRows, mapping, this.sanitizeNumber.bind(this));
       rowsToProcess = aggregatedDaily.map(c => ({
         [mapping.name]: c.name,
@@ -513,7 +661,6 @@ export class CsvEngine {
       }));
       validation.infos.push(`Daily row aggregation: Consolidated ${rawRows.length} daily rows into ${aggregatedDaily.length} weekly campaign summaries.`);
     } else {
-      // Case B: Already-aggregated period-level records -> use supplied campaign metrics directly and DO NOT aggregate again
       rowsToProcess = rawRows;
       validation.infos.push(`Period-level data preserved: Used ${rawRows.length} pre-aggregated campaign records directly without re-aggregation.`);
     }
@@ -531,7 +678,7 @@ export class CsvEngine {
 
     rowsToProcess.forEach((row, idx) => {
       const name = (row[mapping.name] || `Campaign ${idx + 1}`).trim();
-      if (!name) return; // skip empty
+      if (!name) return;
 
       const spend = this.sanitizeNumber(row[mapping.spend]) || 0;
       const clicks = this.sanitizeNumber(row[mapping.clicks]) || 0;
@@ -543,7 +690,6 @@ export class CsvEngine {
       let cpa = mapping.cpa && row[mapping.cpa] !== undefined ? this.sanitizeNumber(row[mapping.cpa], null) : null;
       let costPerAllConv = mapping.costPerAllConv && row[mapping.costPerAllConv] !== undefined ? this.sanitizeNumber(row[mapping.costPerAllConv], null) : null;
 
-      // Revenue & ROAS handling
       let revenue = mapping.revenue && row[mapping.revenue] !== undefined ? (this.sanitizeNumber(row[mapping.revenue]) || 0) : (row.revenue !== undefined ? (this.sanitizeNumber(row.revenue) || 0) : 0);
       let roas = mapping.roas && row[mapping.roas] !== undefined ? this.sanitizeNumber(row[mapping.roas], null) : null;
       if (spend > 0 && revenue > 0) {
@@ -552,12 +698,6 @@ export class CsvEngine {
         revenue = Math.round(spend * roas);
       }
 
-      // CRITICAL DATA INTEGRITY (USER REQUIREMENT):
-      // 1. Never assume allConversions = conversions + phoneCalls.
-      // 2. If source CSV contains an explicit All Conversions metric, preserve that source value exactly.
-      // 3. If source does not contain All Conversions, use documented fallback behavior and clearly mark
-      //    that the value was derived/fallback data (allConversionsDerived: true).
-      // 4. Keep these metrics completely separate: Leads, Conversions, Phone Calls, All Conversions.
       let allConversions = null;
       let allConversionsDerived = false;
 
@@ -570,39 +710,29 @@ export class CsvEngine {
         allConversionsDerived = false;
         hasExplicitAllConvAny = true;
       } else {
-        // Documented fallback: Default cleanly to recorded primary conversions
-        // Clearly marked as derived/fallback data. NEVER add conversions + phoneCalls.
         allConversions = conversions;
         allConversionsDerived = true;
       }
 
-      // Estimate impressions if missing
       if (!impressions && clicks > 0) {
-        impressions = Math.round(clicks * 18); // ~5.5% CTR estimate
+        impressions = Math.round(clicks * 18);
       }
 
-      // Compute CPC if missing or 0
       if ((cpc === null || cpc === 0) && clicks > 0) {
         cpc = parseFloat((spend / clicks).toFixed(2));
       }
 
-      // Compute CPA (Cost / Conv) if missing or 0
       if ((cpa === null || cpa === 0) && conversions > 0) {
         cpa = Math.round(spend / conversions);
       }
 
-      // Compute Cost / All Conv if missing or 0
       if ((costPerAllConv === null || costPerAllConv === 0) && allConversions > 0) {
         costPerAllConv = Math.round(spend / allConversions);
       }
 
-      // CTR
       const ctr = impressions > 0 ? parseFloat(((clicks / impressions) * 100).toFixed(2)) : 0;
-
-      // Conversion Rate
       const conversionRate = clicks > 0 ? parseFloat(((conversions / clicks) * 100).toFixed(2)) : 0;
 
-      // Detect Channel (Search vs PMax vs Display vs YouTube vs Meta)
       let channel = 'Search';
       const lowerName = name.toLowerCase();
       const rawChannel = (row[mapping.channel] || '').toLowerCase();
@@ -612,11 +742,10 @@ export class CsvEngine {
         channel = 'Display';
       } else if (rawChannel.includes('youtube') || lowerName.includes('youtube') || rawChannel.includes('video')) {
         channel = 'YouTube';
-      } else if (rawChannel.includes('meta') || rawChannel.includes('facebook') || rawChannel.includes('instagram')) {
+      } else if (rawChannel.includes('meta') || rawChannel.includes('facebook') || rawChannel.includes('instagram') || lowerName.includes('instant form')) {
         channel = 'Meta';
       }
 
-      // Detect Platform (Requirement: Do not default an unknown standard CSV to Google)
       let platform = 'unknown';
       const rawPlatform = mapping.platform && row[mapping.platform] ? String(row[mapping.platform]).trim().toLowerCase() : '';
       if (rawPlatform) {
@@ -629,7 +758,7 @@ export class CsvEngine {
         }
       } else if (rawChannel.includes('google') || rawChannel.includes('adwords') || rawChannel.includes('youtube')) {
         platform = 'google';
-      } else if (rawChannel.includes('meta') || rawChannel.includes('facebook') || rawChannel.includes('instagram')) {
+      } else if (rawChannel.includes('meta') || rawChannel.includes('facebook') || rawChannel.includes('instagram') || channel === 'Meta') {
         platform = 'meta';
       } else if (metadata.platform) {
         platform = String(metadata.platform).toLowerCase();
@@ -637,7 +766,6 @@ export class CsvEngine {
         platform = 'unknown';
       }
 
-      // Detect specialty/location
       let specialty = (row[mapping.specialty] || '').trim();
       if (!specialty) {
         if (lowerName.includes('kilpauk')) specialty = 'Kilpauk Multispeciality';
@@ -650,15 +778,14 @@ export class CsvEngine {
         else specialty = 'General';
       }
 
-      // Efficiency Classification
       let classification = 'moderate';
       let mainIssue = '';
       if (conversions >= 2 && cpa !== null && cpa <= 5500) {
         classification = 'strong';
-      } else if ((cpa !== null && cpa > 15000) || conversions === 0 || (cpc && cpc > 50)) {
+      } else if ((cpa !== null && cpa > 15000) || (spend > 3000 && conversions === 0) || (cpc && cpc > 50)) {
         classification = 'weak';
-        if (conversions === 0 && cpc > 40) mainIssue = `Zero conversions with high ₹${cpc} CPC`;
-        else if (cpa && cpa > 30000) mainIssue = `Severe CPA of ₹${cpa.toLocaleString('en-IN')}`;
+        if (conversions === 0 && cpc > 40) mainIssue = `Zero conversions with ₹${cpc} CPC`;
+        else if (cpa && cpa > 30000) mainIssue = `High CPA of ₹${cpa.toLocaleString('en-IN')}`;
         else if (phoneCalls > 20 && conversions <= 2) mainIssue = `${phoneCalls} calls with low verified conversions`;
       }
 
@@ -698,7 +825,6 @@ export class CsvEngine {
       });
     });
 
-    // Re-rank campaigns: strong first, then conversions desc
     campaigns.sort((a, b) => {
       if (a.classification === 'strong' && b.classification !== 'strong') return -1;
       if (a.classification !== 'strong' && b.classification === 'strong') return 1;
@@ -706,7 +832,6 @@ export class CsvEngine {
     });
     campaigns.forEach((c, i) => c.rank = i + 1);
 
-    // Derived overall metrics (CRITICAL: NEVER AVERAGE RATIOS)
     const overallCtr = aggImpressions > 0 ? parseFloat(((aggClicks / aggImpressions) * 100).toFixed(2)) : 0;
     const overallCpc = aggClicks > 0 ? parseFloat((aggSpend / aggClicks).toFixed(2)) : 0;
     const overallCpa = aggConversions > 0 ? Math.round(aggSpend / aggConversions) : null;
@@ -760,7 +885,7 @@ export class CsvEngine {
   }
 
   /**
-   * Parse a CANIT Skope KPI Cross-Tab CSV dataset into an array of Report objects (one per detected period)
+   * Parse a CANIT Skope KPI Cross-Tab CSV/Excel dataset into an array of Report objects (one per detected period)
    * @param {Object} parsedData - PapaParse results
    * @param {Object} metadata - { fileName, existingReports, allocatedBudget }
    * @returns {import('./models.js').Report[]}
@@ -787,7 +912,13 @@ export class CsvEngine {
       throw new Error('No valid reporting period columns found in cross-tab CSV.');
     }
 
-    const SECTION_NAMES = ['google search', 'google pmax', 'youtube', 'meta'];
+    const SECTION_PATTERNS = [
+      { pattern: /^\s*google\s*search\s*$/i, platform: 'google', channel: 'Search' },
+      { pattern: /^\s*(google\s*pmax|performance\s*max)\s*$/i, platform: 'google', channel: 'PMax' },
+      { pattern: /^\s*youtube(\s+ads)?\s*$/i, platform: 'google', channel: 'YouTube' },
+      { pattern: /^\s*google(\s+ads)?\s*$/i, platform: 'google', channel: 'Search' },
+      { pattern: /^\s*(meta|facebook|fb|instagram)(\s+ads)?\s*$/i, platform: 'meta', channel: 'Meta' }
+    ];
 
     const periodDataMap = {};
     periodColumns.forEach(p => {
@@ -795,9 +926,9 @@ export class CsvEngine {
     });
 
     let currentCampaign = '';
-    let currentSection = 'Google Search';
-    let currentPlatform = 'google';
-    let currentChannel = 'Search';
+    let currentSection = 'Meta';
+    let currentPlatform = 'meta';
+    let currentChannel = 'Meta';
     let currentCampaignId = '';
     let campCounter = 0;
 
@@ -806,56 +937,44 @@ export class CsvEngine {
       const col0 = (row[headers[0]] || '').trim();
       const col1 = (row[headers[1]] || '').trim();
 
-      // 1. Ignore summary rows such as Total, Total Spent (User directive 11)
-      if (/^total/i.test(col0)) {
+      // 1. Ignore summary rows such as Total, Total Spent
+      if (/^total/i.test(col0) || /^summary/i.test(col0)) {
         continue;
       }
 
-      // 2. Dynamic Section & Platform header detection (never use fixed row numbers)
-      const lowerCol0 = col0.toLowerCase();
-      const isSectionMatch = SECTION_NAMES.some(s => lowerCol0.includes(s));
-
-      if (isSectionMatch) {
-        if (lowerCol0.includes('meta')) {
-          currentSection = col0;
-          currentPlatform = 'meta';
-          currentChannel = 'Meta';
-        } else if (lowerCol0.includes('youtube') || lowerCol0.includes('video')) {
-          currentSection = col0;
-          currentPlatform = 'google';
-          currentChannel = 'YouTube';
-        } else if (lowerCol0.includes('pmax') || lowerCol0.includes('performance max')) {
-          currentSection = col0;
-          currentPlatform = 'google';
-          currentChannel = 'PMax';
-        } else if (lowerCol0.includes('search')) {
-          currentSection = col0;
-          currentPlatform = 'google';
-          currentChannel = 'Search';
-        }
-
-        // If purely a section header (col1 empty), clear campaign context and proceed
-        if (!col1) {
-          currentCampaign = '';
-          currentCampaignId = '';
-          continue;
-        }
+      // 2. Dynamic Section & Platform header detection (when col1 is empty or strictly a platform heading)
+      const isSectionHeader = !col1 && SECTION_PATTERNS.some(s => s.pattern.test(col0));
+      if (isSectionHeader) {
+        const matched = SECTION_PATTERNS.find(s => s.pattern.test(col0));
+        currentPlatform = matched.platform;
+        currentChannel = matched.channel;
+        currentSection = col0;
+        currentCampaign = '';
+        currentCampaignId = '';
+        continue;
       }
 
       // 3. Campaign name fill-down (deterministic, dynamic section inheritance)
       if (col0) {
         currentCampaign = col0;
         campCounter++;
-        currentCampaignId = `camp_${campCounter}_${currentChannel}_${col0}`;
+        if (/instant form|fb|ig|meta|facebook/i.test(col0) && currentPlatform !== 'google') {
+          currentPlatform = 'meta';
+          currentChannel = 'Meta';
+        } else if (/search|pmax|adwords|google/i.test(col0) && currentPlatform === 'unknown') {
+          currentPlatform = 'google';
+          currentChannel = 'Search';
+        }
+        currentCampaignId = `camp_${campCounter}_${currentCampaign.replace(/[^a-zA-Z0-9]/g, '_')}`;
       }
 
       if (!currentCampaign || !col1 || !currentCampaignId) continue;
 
-      // Map KPI label (User directive 1: results preserved as sourceResults, not conversions)
+      // Map KPI label
       let kpiKey = null;
       const lowerKpi = col1.toLowerCase();
       for (const [key, syns] of Object.entries(this.KPI_SYNONYMS)) {
-        if (syns.includes(lowerKpi)) {
+        if (syns.some(s => lowerKpi === s || lowerKpi.includes(s) || s.includes(lowerKpi))) {
           kpiKey = key;
           break;
         }
@@ -924,7 +1043,7 @@ export class CsvEngine {
         const phoneCalls = m.phoneCalls || 0;
         let impressions = m.views || 0;
         const sourceResults = m.sourceResults !== undefined ? m.sourceResults : null;
-        const conversions = m.conversions || 0;
+        const conversions = m.conversions || (leads > 0 ? leads : 0);
         const budget = m.budget || 0;
         let revenue = m.revenue || 0;
         let roas = m.roas !== undefined ? m.roas : null;
@@ -944,26 +1063,24 @@ export class CsvEngine {
           impressions = Math.round(clicks * 18);
         }
 
-        // Safe CPC derivation (Requirement 8)
         let cpc = null;
         if (spend > 0 && clicks > 0) {
           cpc = parseFloat((spend / clicks).toFixed(2));
-        } else if (m.cpc !== undefined) {
+        } else if (m.cpc !== undefined && m.cpc !== null) {
           cpc = m.cpc;
         }
 
-        // Conversions & All Conversions (Directives 1 & 9)
         let allConversions = m.allConversions !== undefined ? m.allConversions : conversions;
         let allConversionsDerived = m.allConversions === undefined;
 
-        let cpa = conversions > 0 ? Math.round(spend / conversions) : null;
+        let cpa = conversions > 0 ? Math.round(spend / conversions) : (m.cpl || null);
         let costPerAllConv = allConversions > 0 ? Math.round(spend / allConversions) : null;
         const ctr = impressions > 0 ? parseFloat(((clicks / impressions) * 100).toFixed(2)) : 0;
         const conversionRate = clicks > 0 ? parseFloat(((conversions / clicks) * 100).toFixed(2)) : 0;
 
         let classification = 'moderate';
         if (conversions >= 2 && cpa !== null && cpa <= 5500) classification = 'strong';
-        else if ((cpa !== null && cpa > 15000) || (spend > 5000 && conversions === 0)) classification = 'weak';
+        else if ((cpa !== null && cpa > 15000) || (spend > 3000 && conversions === 0)) classification = 'weak';
 
         aggSpend += spend;
         aggClicks += clicks;
@@ -979,11 +1096,12 @@ export class CsvEngine {
         campaigns.push({
           id: c.id,
           name: c.name,
-          platform: c.platform || 'google',
-          channel: c.channel,
+          platform: c.platform || 'meta',
+          channel: c.channel || 'Meta',
           specialty: c.specialty,
           section: c.section,
           spend,
+          budget,
           impressions,
           clicks,
           cpc: cpc || 0,
@@ -1004,7 +1122,11 @@ export class CsvEngine {
         });
       });
 
-      // Sort by spend descending
+      // If period has zero campaigns with data, skip generating report
+      if (campaigns.length === 0) {
+        return;
+      }
+
       campaigns.sort((a, b) => b.spend - a.spend);
       campaigns.forEach((c, i) => c.rank = i + 1);
 
@@ -1073,10 +1195,10 @@ export class CsvEngine {
   }
 
   /**
-   * Process multiple CSV files simultaneously
+   * Process multiple CSV or Excel files simultaneously
    * @param {File[]|string[]} files
    * @param {import('./models.js').Report[]} [existingReports]
-   * @returns {Promise<Array<{ file: File|string, report: import('./models.js').Report|null, validation: import('./models.js').ValidationResult, error?: string }>>}
+   * @returns {Promise<Array<{ file: File|string, fileName: string, report: import('./models.js').Report|null, validation: import('./models.js').ValidationResult, success: boolean, isDuplicate: boolean, existingReportId?: string, error?: string }>>}
    */
   static async parseMultipleCsvs(files, existingReports = []) {
     const results = [];
@@ -1097,6 +1219,8 @@ export class CsvEngine {
               fileName,
               report: null,
               validation,
+              success: false,
+              isDuplicate: false,
               error: validation.errors.join('; ')
             });
             continue;
@@ -1107,10 +1231,30 @@ export class CsvEngine {
             existingReports
           });
 
+          if (crossTabReports.length === 0) {
+            results.push({
+              file,
+              fileName,
+              report: null,
+              validation: {
+                isValid: false,
+                status: 'Failed',
+                rowCount: parsed.data.length,
+                campaignCount: 0,
+                errors: ['No active periods with ad spend or campaign data found in sheet.'],
+                warnings: [],
+                infos: []
+              },
+              success: false,
+              isDuplicate: false,
+              error: 'No active periods with ad spend or campaign data found in sheet.'
+            });
+            continue;
+          }
+
           for (const rep of crossTabReports) {
             const dupMatch = existingReports.find(r => {
               if (!r.period || !rep.period) return false;
-              // Allow real data to replace system sample without treating as blocking duplicate
               if (r.sourceType === 'system') return false;
               return r.period.periodId === rep.period.periodId ||
                      (r.period.startDate === rep.period.startDate && r.period.endDate === rep.period.endDate);
@@ -1132,6 +1276,7 @@ export class CsvEngine {
                 isDuplicate: !!dupMatch,
                 existingReportId: dupMatch ? dupMatch.reportId : null
               },
+              success: true,
               isDuplicate: !!dupMatch,
               existingReportId: dupMatch ? dupMatch.reportId : null
             });
@@ -1148,6 +1293,8 @@ export class CsvEngine {
             fileName,
             report: null,
             validation,
+            success: false,
+            isDuplicate: false,
             error: validation.errors.join('; ')
           });
           continue;
@@ -1163,6 +1310,7 @@ export class CsvEngine {
           fileName,
           report,
           validation: report.validation || validation,
+          success: true,
           isDuplicate: validation.isDuplicate,
           existingReportId: validation.existingReportId
         });
@@ -1181,6 +1329,8 @@ export class CsvEngine {
             infos: [],
             isDuplicate: false
           },
+          success: false,
+          isDuplicate: false,
           error: err.message
         });
       }

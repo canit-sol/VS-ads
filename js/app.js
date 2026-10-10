@@ -384,14 +384,19 @@ class AppController {
     try {
       const results = await CsvEngine.parseMultipleCsvs([file], store.getAllReports());
       let savedCount = 0;
+      let lastReport = null;
       results.forEach(res => {
-        if (res.success && res.report) {
-          store.addReport(res.report);
+        if (res.report && (res.success || res.validation?.isValid)) {
+          store.addReport(res.report, 'replace');
           savedCount++;
+          lastReport = res.report;
         }
       });
 
       if (savedCount > 0) {
+        if (lastReport) {
+          store.setActiveReport(lastReport.reportId);
+        }
         if (store.isLocalServer) await store.syncToLocalServer();
         this.renderClientTabs();
         this.populateReportDropdowns();
@@ -402,7 +407,7 @@ class AppController {
       } else {
         if (statusEl) {
           statusEl.className = 'text-xs text-center py-2 px-3 rounded-lg bg-red-950/50 border border-red-500/30 text-red-300';
-          statusEl.textContent = results[0]?.error || 'Failed to parse file. Ensure it is a valid CSV or Excel file.';
+          statusEl.textContent = results[0]?.error || results[0]?.validation?.errors?.join('; ') || 'Failed to parse file. Ensure it is a valid CSV or Excel file.';
         }
       }
     } catch (err) {
@@ -3423,9 +3428,11 @@ class AppController {
 }
 
 // Attach globally
-window.store = store;
-window.CsvEngine = CsvEngine;
-window.vsApp = new AppController();
-window.app = window.vsApp;
+if (typeof window !== 'undefined') {
+  window.store = store;
+  window.CsvEngine = CsvEngine;
+  window.vsApp = new AppController();
+  window.app = window.vsApp;
+}
 
 
