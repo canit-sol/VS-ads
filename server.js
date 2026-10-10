@@ -501,7 +501,7 @@ const server = http.createServer(async (req, res) => {
 
     res.writeHead(200, {
       'Content-Type': contentType,
-      'Cache-Control': ext === '.json' ? 'no-cache, no-store, must-revalidate' : 'no-cache'
+      'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0'
     });
 
     const stream = fs.createReadStream(filePath);
